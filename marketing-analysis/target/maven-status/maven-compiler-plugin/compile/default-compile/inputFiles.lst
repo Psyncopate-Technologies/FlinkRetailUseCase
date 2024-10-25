@@ -1,0 +1,10 @@
+/Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/marketing-analysis/src/main/java/org/psyncopate/flink/PropertyFilesLoader.java
+/Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/marketing-analysis/src/main/java/org/psyncopate/flink/ViewsPerProductAnalysis.java
+/Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/marketing-analysis/src/main/java/org/psyncopate/flink/model/ShoeCustomer.java
+/Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/marketing-analysis/src/main/java/org/psyncopate/flink/model/ProductViewCount.java
+/Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/marketing-analysis/src/main/java/org/psyncopate/flink/model/Shoe.java
+/Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/marketing-analysis/src/main/java/org/psyncopate/flink/model/EnrichedTopViewedProduct.java
+/Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/marketing-analysis/src/main/java/org/psyncopate/flink/model/TopViewedProduct.java
+/Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/marketing-analysis/src/main/java/org/psyncopate/flink/TopViewedProductByUserAnalysis.java
+/Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/marketing-analysis/src/main/java/org/psyncopate/flink/model/EnrichedProductViewCount.java
+/Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/marketing-analysis/src/main/java/org/psyncopate/flink/model/PortalViewAudit.java

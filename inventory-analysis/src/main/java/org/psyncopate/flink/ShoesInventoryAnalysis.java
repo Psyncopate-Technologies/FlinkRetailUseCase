@@ -3,6 +3,7 @@ package org.psyncopate.flink;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.streaming.api.functions.co.KeyedCoProcessFunction;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -17,17 +18,24 @@ import io.delta.flink.sink.DeltaSink;
 
 import org.slf4j.Logger;
 import org.bson.BsonDocument;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Properties;
 import org.psyncopate.flink.model.Shoe;
 import org.psyncopate.flink.model.ShoeOrder;
+import org.apache.flink.api.common.RuntimeExecutionMode;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.api.common.state.MapState;
 import org.apache.flink.api.common.state.MapStateDescriptor;
+import org.apache.flink.api.common.state.ValueState;
+import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.cdc.connectors.mongodb.source.MongoDBSource;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.MemorySize;
 import org.apache.flink.connector.mongodb.source.MongoSource;
@@ -44,6 +52,8 @@ public class ShoesInventoryAnalysis {
         // LocalStreamEnvironment env =
         // StreamExecutionEnvironment.createLocalEnvironment();
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
+        env.setRuntimeMode(RuntimeExecutionMode.STREAMING);
 
         Properties mongoProperties = PropertyFilesLoader.loadProperties("mongodb.properties");
         Properties appconfigProperties = PropertyFilesLoader.loadProperties("appconfig.properties");
@@ -63,15 +73,14 @@ public class ShoesInventoryAnalysis {
          * appconfigProperties.getProperty("savepoint.location"));
          * env.configure(config);
          */
-
         MongoSource<Shoe> shoeinventory = MongoSource.<Shoe>builder()
                 .setUri(mongoProperties.getProperty("mongodb.uri"))
                 .setDatabase(mongoProperties.getProperty("mongodb.database"))
                 .setCollection(appconfigProperties.getProperty("retail.inventory.collection.name"))
                 .setFetchSize(2048)
-                .setLimit(10000)
+                .setLimit(-1)
                 .setNoCursorTimeout(true)
-                .setPartitionStrategy(PartitionStrategy.SAMPLE)
+                .setPartitionStrategy(PartitionStrategy.SINGLE)
                 .setPartitionSize(MemorySize.ofMebiBytes(64))
                 .setDeserializationSchema(new MongoDeserializationSchema<Shoe>() {
                     @Override
@@ -99,9 +108,9 @@ public class ShoesInventoryAnalysis {
                 .setDatabase(mongoProperties.getProperty("mongodb.database"))
                 .setCollection(appconfigProperties.getProperty("retail.orderplacement.collection.name"))
                 .setFetchSize(2048)
-                .setLimit(10000)
+                .setLimit(-1)
                 .setNoCursorTimeout(true)
-                .setPartitionStrategy(PartitionStrategy.SAMPLE)
+                .setPartitionStrategy(PartitionStrategy.SINGLE)
                 .setPartitionSize(MemorySize.ofMebiBytes(64))
                 .setDeserializationSchema(new MongoDeserializationSchema<ShoeOrder>() {
                     @Override
@@ -122,11 +131,11 @@ public class ShoesInventoryAnalysis {
                 .build();
 
         DataStream<Shoe> shoes_ds = env
-                .fromSource(shoeinventory, WatermarkStrategy.noWatermarks(), "Read Shoes Inventory from MongoDB")
-                .setParallelism(1);
+                .fromSource(shoeinventory, WatermarkStrategy.forMonotonousTimestamps(), "Read Shoes Inventory from MongoDB")
+                .setParallelism(1).name("Retrieve Shoes Inventory");
         DataStream<ShoeOrder> shoeorders_ds = env
-                .fromSource(shoeorders, WatermarkStrategy.noWatermarks(), "Read Shoe Orders from MongoDB")
-                .setParallelism(1);
+                .fromSource(shoeorders, WatermarkStrategy.forMonotonousTimestamps(), "Read Shoe Orders from MongoDB")
+                .setParallelism(1).name("Read Shoe Orders");
 
         // Key both streams by product ID for joining
         KeyedStream<Shoe, String> keyedShoesStream = shoes_ds.keyBy(Shoe::getId);
@@ -137,13 +146,13 @@ public class ShoesInventoryAnalysis {
                 .connect(keyedOrdersStream)
                 .process(new KeyedCoProcessFunction<String, Shoe, ShoeOrder, Shoe>() {
 
-                    private MapState<String, Integer> inventoryState;
+                    private MapState<String, Shoe> inventoryState;
                     private ListState<ShoeOrder> orderBufferState;
 
                     @Override
                     public void open(Configuration parameters) throws Exception {
-                        MapStateDescriptor<String, Integer> inventoryDescriptor = new MapStateDescriptor<>(
-                                "inventoryState", String.class, Integer.class);
+                        MapStateDescriptor<String, Shoe> inventoryDescriptor = new MapStateDescriptor<>(
+                                "inventoryState", String.class, Shoe.class);
                         inventoryState = getRuntimeContext().getMapState(inventoryDescriptor);
 
                         // Initialize ListState to buffer orders
@@ -155,22 +164,36 @@ public class ShoesInventoryAnalysis {
                     @Override
                     public void processElement1(Shoe shoe, Context ctx, Collector<Shoe> out) throws Exception {
                         // Store initial inventory
-                        inventoryState.put(shoe.getId(), Integer.parseInt(shoe.getQuantity()));
+                        //inventoryState.put(shoe.getId(), Integer.parseInt(shoe.getQuantity()));
+                        inventoryState.put(shoe.getId(), shoe);
+
+                        List<ShoeOrder> nonMatchingBufferedShoeOrders = new ArrayList<>();
 
                         // Process any buffered orders
                         Iterable<ShoeOrder> bufferedOrders = orderBufferState.get();
                         for (ShoeOrder order : bufferedOrders) {
-                            processOrder(order, shoe.getId(), out);
+                            logger.info("into the process1 function of shoe. About to process the buffered order: "+ order);
+                            if(order.getProduct_id().equals(shoe.getId())){
+                                processOrder(order, shoe.getId(), out);
+                            }else{
+                                nonMatchingBufferedShoeOrders.add(order);
+                            }
+                            
                         }
                         // Clear the buffer after processing
                         orderBufferState.clear();
+                        for (ShoeOrder order : nonMatchingBufferedShoeOrders) {
+                            orderBufferState.add(order);
+                        }
                     }
 
                     @Override
                     public void processElement2(ShoeOrder order, Context ctx, Collector<Shoe> out) throws Exception {
                         // Update shoe inventory when an order comes in
-                        Integer currentQuantity = inventoryState.get(order.getProduct_id());
-                        if (currentQuantity != null && currentQuantity > 0) {
+                        Shoe shoeFromState = inventoryState.get(order.getProduct_id());
+                        
+                        //Integer currentQuantity = inventoryState.get(order.getProduct_id());
+                        if (shoeFromState != null ) {
                             /*
                              * currentQuantity -= 1;
                              * inventoryState.put(order.getProduct_id(), currentQuantity);
@@ -181,6 +204,8 @@ public class ShoesInventoryAnalysis {
                              * updatedShoe.setQuantity(currentQuantity.toString());
                              * out.collect(updatedShoe);
                              */
+                            //Integer currentQuantity = Integer.parseInt(shoeFromState.getQuantity());
+                            logger.info("into the process2 function of shoeorder. About to process the new order: "+ order);
                             processOrder(order, order.getProduct_id(), out);
                         } else {
                             // If shoe not found in inventory, skip processing
@@ -191,45 +216,38 @@ public class ShoesInventoryAnalysis {
                              * " does not exist in inventory.");
                              */
                             // Buffer the order until inventory is available
+                            logger.info("No Inventory found for order. Adding to buffered: "+ order);
                             orderBufferState.add(order);
                         }
                     }
 
                     // Helper method to process the order and collect the result
                     private void processOrder(ShoeOrder order, String productId, Collector<Shoe> out) throws Exception {
-                        Integer currentInventory = inventoryState.get(productId);
-
+                        Shoe shoeFromState = inventoryState.get(productId);
+                        Integer currentInventory = Integer.parseInt(shoeFromState.getQuantity());
+                        
+                        //Integer currentInventory = inventoryState.get(productId);
+                        logger.info("processing order: "+ order);
                         if (currentInventory != null && currentInventory > 0) {
                             // Deduct the order quantity from inventory
                             Integer updatedInventory = currentInventory - 1;
-                            inventoryState.put(productId, updatedInventory);
-
+                            shoeFromState.setQuantity(String.valueOf(updatedInventory));
+                            inventoryState.put(productId, shoeFromState);
+                            logger.info("order inventory id: "+ productId + "updatedqty : " + updatedInventory);
                             // Emit updated shoe with new quantity
                             Shoe updatedShoe = new Shoe();
                             updatedShoe.setId(order.getProduct_id());
                             updatedShoe.setQuantity(updatedInventory.toString());
-                            out.collect(updatedShoe);
-
-                            /*
-                             * // Trigger alert if inventory goes below the threshold
-                             * if (updatedInventory < 50) {
-                             * out.collect(Tuple2.of(shoeInventory, "ALERT: Low inventory for product " +
-                             * productId + ". Remaining: " + updatedInventory));
-                             * }
-                             */
+                            if(updatedInventory < Integer.parseInt(appconfigProperties.getProperty("inventory.low.quantity.alert.thershold"))){
+                                out.collect(shoeFromState);
+                            }else{
+                                logger.info("No alerts for this order");
+                            }
                         }
                     }
-                });
+                }).name("Low Stock Alerts");
+        
 
-        // Stream for low stock alerts (quantity < 50)
-        int alertThershold = Integer
-                .parseInt(appconfigProperties.getProperty("inventory.low.quantity.alert.thershold"));
-        DataStream<Shoe> lowStockAlert_ds = updatedShoesInventory_ds
-                .filter(shoe -> Integer.parseInt(shoe.getQuantity()) < alertThershold);
-
-        // String deltaTablePath =
-        // deltaLakeProperties.getProperty("storage.filesystem.scheme")+"/opt/flink/delta-lake/"
-        // + deltaLakeProperties.getProperty("deltalake.table.name");
         String deltaTablePath = deltaLakeProperties.getProperty("storage.filesystem.scheme")
                 + deltaLakeProperties.getProperty("storage.filesystem.s3.bucket.name") + "/"
                 + deltaLakeProperties.getProperty("deltalake.table.name");
@@ -240,41 +258,15 @@ public class ShoesInventoryAnalysis {
                 new RowType.RowField("quantity", new VarCharType())));
 
         // Create and add the Delta sink
-        DataStream<RowData> lowStock_rowDatastream = lowStockAlert_ds.map(shoe -> {
-            GenericRowData rowData = new GenericRowData(RowKind.INSERT, 2); // 5 fields in the Shoe POJO
+        DataStream<RowData> lowStock_rowDatastream = updatedShoesInventory_ds.map(shoe -> {
+            logger.info("Low Stock Alert---->"+ shoe);
+            GenericRowData rowData = new GenericRowData(RowKind.INSERT, 2); 
             rowData.setField(0, StringData.fromString(shoe.getId()));
             rowData.setField(1, StringData.fromString(shoe.getQuantity()));
             return rowData;
         });
 
-        createDeltaSink(lowStock_rowDatastream, deltaTablePath, rowType);
-
-        // Print Alerts and updated inventory for local testing
-        /*
-         * shoes_ds.print("Initial Shoes Inventory");
-         * shoeorders_ds.print("Shoe Order placement");
-         * updatedShoesInventory_ds.print("Updated Shoe Inventory");
-         * lowStockAlert_ds.print("Low Stock Alerts");
-         */
-
-        /*
-         * lowStockAlert_ds.map( record -> {
-         * logger.info("Low Stock alert"+record);
-         * return record;
-         * });
-         */
-
-        /*
-         * shoes_ds.map( record -> {
-         * logger.info("Retrieved Inventory record", record);
-         * return record;
-         * });
-         * 
-         * shoeorders_ds.map( record -> {
-         * logger.info("Retrieved Order Placement record", record);
-         * return record;
-         * });
-         */
+        //createDeltaSink(lowStock_rowDatastream, deltaTablePath, rowType);
 
         env.execute("Shoes Inventory Analysis");
 
@@ -298,7 +290,45 @@ public class ShoesInventoryAnalysis {
                 .withPartitionColumns(partitionCols)
                 .build();
 
-        stream.sinkTo(deltaSink);
+        stream.sinkTo(deltaSink).name("Write as Delta lake table");
         return stream;
     }
+
+    /* public static class LowStockAlertFunction extends KeyedProcessFunction<String, Shoe, Shoe> {
+        private final int alertThreshold;
+        private final Logger logger;
+        private ValueState<Integer> latestQuantityState;
+
+        public LowStockAlertFunction(int alertThreshold, Logger logger) {
+            this.alertThreshold = alertThreshold;
+            this.logger = logger;
+        }
+
+       @Override
+        public void open(org.apache.flink.configuration.Configuration parameters) {
+            ValueStateDescriptor<Integer> descriptor = new ValueStateDescriptor<>(
+                "latestQuantity", // state name
+                Integer.class // state type
+            );
+            latestQuantityState = getRuntimeContext().getState(descriptor);
+        }
+
+        @Override
+        public void processElement(Shoe shoe, Context context, Collector<Shoe> collector) throws Exception {
+            Integer latestQuantity = latestQuantityState.value();
+
+            // Update the latest quantity
+            latestQuantityState.update(Integer.parseInt(shoe.getQuantity()));
+
+            logger.info("Shoe Qunatity :"+ Integer.parseInt(shoe.getQuantity()));
+            logger.info("Threshold :"+ alertThreshold);
+            // Emit an alert if the latest quantity is less than or equal to the threshold
+            if (latestQuantity != null && Integer.parseInt(shoe.getQuantity()) < alertThreshold) {
+                logger.info("Filtered element collected");
+                collector.collect(shoe); // Emit the shoe for low stock alert
+            }else{
+                logger.info("Inventory more than the threshold set for product"+ shoe.getId());
+            }
+        }
+    } */
 }

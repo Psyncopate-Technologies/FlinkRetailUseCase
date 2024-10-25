@@ -136,6 +136,7 @@ services:
         rest.bind-port: 9081
         rest.port: 9081
         parallelism.default: 1
+        jobmanager.memory.process.size: 8g
       - |
         ENABLE_BUILT_IN_PLUGINS=flink-s3-fs-hadoop-1.19.0.jar
       - |
@@ -162,8 +163,10 @@ services:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: flink-jobmanager
-        taskmanager.numberOfTaskSlots: 10
+        taskmanager.numberOfTaskSlots: 5
         parallelism.default: 1
+        taskmanager.memory.process.size: 8g
+
       - |
         ENABLE_BUILT_IN_PLUGINS=flink-s3-fs-hadoop-1.19.0.jar
       - |
