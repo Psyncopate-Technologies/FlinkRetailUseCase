@@ -185,7 +185,7 @@ public class ViewsPerProductAnalysis {
                 return rowData;
             });
     
-            //createDeltaSink(product_count_map, deltaTablePath, rowType); 
+            createDeltaSink(product_count_map, deltaTablePath, rowType); 
 
         // Execute the job
         env.execute("Product Views for past hour in an interval of 15 mins");

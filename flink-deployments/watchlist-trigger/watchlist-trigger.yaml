@@ -1,0 +1,55 @@
+apiVersion: flink.apache.org/v1beta1
+kind: FlinkDeployment
+metadata:
+  name: watchlist-trigger
+spec:
+  image: dsasidaren/watchlist-trigger:1.0.9
+  flinkVersion: v1_19
+  restartNonce: 003
+  flinkConfiguration:
+    taskmanager.numberOfTaskSlots: "2"
+    classloader.resolve-order: "parent-first"
+    state.backend: rocksdb
+    state.savepoints.dir: file:///mount/savepoints
+    state.checkpoints.dir: file:///mount/checkpoints
+  serviceAccount: flink
+  jobManager:
+    resource:
+      memory: "2048m"
+      cpu: 1
+    podTemplate:
+      spec:
+        containers:
+        - name: flink-main-container
+          volumeMounts:
+          - mountPath: /mount
+            name: flink-persistent-storage
+        volumes:
+        - name: flink-persistent-storage
+          persistentVolumeClaim:
+            claimName: flink-pvc
+  taskManager:
+    resource:
+      memory: "2048m"
+      cpu: 1
+    podTemplate:
+      spec:
+        containers:
+        - name: flink-main-container
+          volumeMounts:
+          - mountPath: /mount
+            name: flink-persistent-storage
+        volumes:
+        - name: flink-persistent-storage
+          persistentVolumeClaim:
+            claimName: flink-pvc
+  job:
+    jarURI: local:///opt/flink/lib/watchlist-trigger-1.0-SNAPSHOT.jar
+    entryClass: org.psyncopate.flink.TriggerEventsForNullCase
+    parallelism: 1
+    upgradeMode: savepoint
+    savepointTriggerNonce: 003
+    #initialSavepointPath: file:///mnt/flink/savepoints/savepoint-e8465f-b44de04ce343
+    #savepointRedeployNonce: 003
+
+

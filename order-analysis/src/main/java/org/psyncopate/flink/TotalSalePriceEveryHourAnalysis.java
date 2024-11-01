@@ -181,7 +181,7 @@ public class TotalSalePriceEveryHourAnalysis {
             return rowData;
         });
 
-        //createDeltaSink(product_count_map, deltaTablePath, rowType); 
+        createDeltaSink(product_count_map, deltaTablePath, rowType); 
         
 
         // Execute the job

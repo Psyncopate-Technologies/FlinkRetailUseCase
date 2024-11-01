@@ -5,11 +5,14 @@ public class CustomerCount {
     private String customerId;
     private String customerName;
     private int customerCount;
-    public CustomerCount(String state, String customerId, String customerName, int customerCount) {
+    private String zipCode;
+    
+    public CustomerCount(String state, String customerId, String customerName, int customerCount, String zipCode) {
         this.state = state;
         this.customerId = customerId;
         this.customerName = customerName;
         this.customerCount = customerCount;
+        this.zipCode = zipCode;
     }
     public String getState() {
         return state;
@@ -39,6 +42,12 @@ public class CustomerCount {
     public String toString() {
         return "CustomerCount [state=" + state + ", customerId=" + customerId + ", customerName=" + customerName
                 + ", customerCount=" + customerCount + "]";
+    }
+    public String getZipCode() {
+        return zipCode;
+    }
+    public void setZipCode(String zipCode) {
+        this.zipCode = zipCode;
     }
 
     

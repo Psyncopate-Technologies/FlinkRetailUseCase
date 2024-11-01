@@ -9,6 +9,37 @@ db.createUser(
   },
 );
 db.createCollection('users');
+db.createRole(
+  {
+      role: "flinkrole",
+      privileges: [{
+          // Grant privileges on all non-system collections in all databases
+          resource: { db: "", collection: "" },
+          actions: [
+              "splitVector",
+              "listDatabases",
+              "listCollections",
+              "collStats",
+              "find",
+              "changeStream" ]
+      }],
+      roles: [
+          // Read config.collections and config.chunks
+          // for sharded cluster snapshot splitting.
+          { role: 'read', db: 'config' }
+      ]
+  }
+);
+
+db.createUser(
+{
+    user: 'flinkuser',
+    pwd: 'flinkpw',
+    roles: [
+       { role: 'flinkrole', db: 'api_prod_db' }
+    ]
+}
+);
 
 db = db.getSiblingDB('api_dev_db');
 db.createUser(

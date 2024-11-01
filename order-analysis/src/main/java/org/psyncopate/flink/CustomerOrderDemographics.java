@@ -199,15 +199,17 @@ public class CustomerOrderDemographics {
         RowType rowType = new RowType(Arrays.asList(
                 new RowType.RowField("state", new VarCharType()),
                 new RowType.RowField("customer_name", new VarCharType()),
-                new RowType.RowField("order_count", new IntType())));
+                new RowType.RowField("order_count", new IntType()),
+                new RowType.RowField("zip", new VarCharType())));
 
         // Create and add the Delta sink
         DataStream<RowData> orderdemographics_customer_count = customerCountStream.map( customercount -> {
             logger.info("Customer Order Demographics"+ customercount );
-            GenericRowData rowData = new GenericRowData(RowKind.INSERT, 3); 
+            GenericRowData rowData = new GenericRowData(RowKind.INSERT, 4); 
             rowData.setField(0, StringData.fromString(customercount.getState()));
             rowData.setField(1, StringData.fromString(customercount.getCustomerName()));
             rowData.setField(2, customercount.getCustomerCount());
+            rowData.setField(3, StringData.fromString(customercount.getZipCode()));
             return rowData;
         });
         createDeltaSink(orderdemographics_customer_count, deltaTablePath, rowType);
@@ -226,7 +228,7 @@ public class CustomerOrderDemographics {
         // Hadoop configuration for AWS S3 access
         org.apache.hadoop.conf.Configuration hadoopConf = new org.apache.hadoop.conf.Configuration();
 
-        String[] partitionCols = { "state" };
+        String[] partitionCols = { "zip" };
         DeltaSink<RowData> deltaSink = DeltaSink
                 .forRowData(
                         new Path(deltaTablePath), // Path to Delta Lake
@@ -330,7 +332,7 @@ public class CustomerOrderDemographics {
             stateOrderCount.put(state, currentCount + 1);
 
             // Emit the updated count for the state
-            out.collect(new CustomerCount(state, customer.getId(), customer.getFirstName()+" "+customer.getLastName(), currentCount + 1));
+            out.collect(new CustomerCount(state, customer.getId(), customer.getFirstName()+" "+customer.getLastName(), currentCount + 1, customer.getZipCode()));
         }
     }
 }

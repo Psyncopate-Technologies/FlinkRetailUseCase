@@ -2,6 +2,7 @@ package org.psyncopate.flink;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
+import org.apache.flink.streaming.api.environment.LocalStreamEnvironment;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.streaming.api.functions.co.KeyedCoProcessFunction;
@@ -49,8 +50,7 @@ public class ShoesInventoryAnalysis {
         // Initialize Logger
         final Logger logger = LoggerFactory.getLogger(ShoesInventoryAnalysis.class);
 
-        // LocalStreamEnvironment env =
-        // StreamExecutionEnvironment.createLocalEnvironment();
+        //LocalStreamEnvironment env = StreamExecutionEnvironment.createLocalEnvironment();
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         env.setRuntimeMode(RuntimeExecutionMode.STREAMING);
@@ -255,18 +255,22 @@ public class ShoesInventoryAnalysis {
         // Define the schema for the RowData
         RowType rowType = new RowType(Arrays.asList(
                 new RowType.RowField("product_id", new VarCharType()),
+                new RowType.RowField("brand", new VarCharType()),
+                new RowType.RowField("name", new VarCharType()),
                 new RowType.RowField("quantity", new VarCharType())));
 
         // Create and add the Delta sink
         DataStream<RowData> lowStock_rowDatastream = updatedShoesInventory_ds.map(shoe -> {
             logger.info("Low Stock Alert---->"+ shoe);
-            GenericRowData rowData = new GenericRowData(RowKind.INSERT, 2); 
+            GenericRowData rowData = new GenericRowData(RowKind.INSERT, 4); 
             rowData.setField(0, StringData.fromString(shoe.getId()));
-            rowData.setField(1, StringData.fromString(shoe.getQuantity()));
+            rowData.setField(1, StringData.fromString(shoe.getBrand()));
+            rowData.setField(2, StringData.fromString(shoe.getName()));
+            rowData.setField(3, StringData.fromString(shoe.getQuantity()));
             return rowData;
         });
 
-        //createDeltaSink(lowStock_rowDatastream, deltaTablePath, rowType);
+        createDeltaSink(lowStock_rowDatastream, deltaTablePath, rowType);
 
         env.execute("Shoes Inventory Analysis");
 

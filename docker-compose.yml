@@ -178,21 +178,47 @@ services:
       - ./mounts/flink-savepoints:/opt/flink/savepoints # Mount for savepoints
       - ./mounts/delta-lake:/opt/flink/delta-lake #Mount for delta lake tables
       - ./mounts/jobs:/opt/flink/jobs #For jobs
+  #Mongo without Replicas
+  #mongo: 
+  #  container_name: container-mongodb
+  #  image: mongo:latest
+  #  restart: always
+  #  ports:
+  #    - 27017:27017
+  #  networks:
+  #    - flink-network
+  #  environment:
+  #    MONGO_INITDB_ROOT_USERNAME: root
+  #    MONGO_INITDB_ROOT_PASSWORD: password
+  #    MONGO_INITDB_DATABASE: root-db
+  #  volumes:
+  #    -  ./mounts/mongo-data:/data/db
+  #    - ./docker-entrypoint-initdb.d/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+  #    - ./docker-entrypoint-initdb.d/mongod.conf:/etc/mongod.conf
+  #  command: ["mongod", "--config", "/etc/mongod.conf"]
+  
+  #Mongo with one node Replica set
   mongo:
     container_name: container-mongodb
     image: mongo:latest
-    restart: always
+    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
     ports:
       - 27017:27017
     networks:
       - flink-network
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: password
-      MONGO_INITDB_DATABASE: root-db
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'host.docker.internal:27017'}]}) }" | mongosh --port 27017 --quiet
+      interval: 5s
+      timeout: 30s
+      start_period: 0s
+      start_interval: 1s
+      retries: 30
     volumes:
-      -  ./mounts/mongo-data:/data/db
+      - ./mounts/mongo-data:/data/db
       - ./docker-entrypoint-initdb.d/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - ./docker-entrypoint-initdb.d:/data/configdb
   mongo-express:
     image: mongo-express:latest
     container_name: mongo-express
@@ -206,7 +232,7 @@ services:
       ME_CONFIG_MONGODB_ADMINPASSWORD: password
       ME_CONFIG_BASICAUTH_USERNAME: root
       ME_CONFIG_BASICAUTH_PASSWORD: password
-      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_SERVER: mongo1
 
 
 networks:

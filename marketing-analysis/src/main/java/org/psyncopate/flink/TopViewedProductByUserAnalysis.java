@@ -235,12 +235,12 @@ public class TopViewedProductByUserAnalysis {
             return rowData;
         });
 
-        //createDeltaSink(product_count_map, deltaTablePath, rowType); 
+        createDeltaSink(product_count_map, deltaTablePath, rowType); 
 
-        userEnrichedTopViewedProducts.map(topProd -> {
+       /*  userEnrichedTopViewedProducts.map(topProd -> {
             logger.info("Top Viewed Product by Users--->"+ topProd);
             return topProd;
-        }).print();
+        }).print(); */
 
         // Execute the job
         env.execute("Top Viewed products by User for past hour in an interval of 15 mins");
