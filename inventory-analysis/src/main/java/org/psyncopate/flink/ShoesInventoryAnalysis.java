@@ -315,6 +315,7 @@ public class ShoesInventoryAnalysis {
         // Create and add the Delta sink
         DataStream<RowData> lowStock_rowDatastream = updatedShoesInventory_ds.map(shoe -> {
             logger.info("Low Stock Alert---->"+ shoe);
+            System.out.println("Low Stock Alert---->"+ shoe);
             GenericRowData rowData = new GenericRowData(RowKind.INSERT, 4); 
             rowData.setField(0, StringData.fromString(shoe.getId()));
             rowData.setField(1, StringData.fromString(shoe.getBrand()));

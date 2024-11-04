@@ -92,7 +92,6 @@ public class OrderCountEveryDayAnalysis {
         Properties deltaLakeProperties = PropertyFilesLoader.loadProperties("delta-lake.properties");
 
         // Enable checkpointing for fault tolerance
-        
          env.enableCheckpointing(30000, CheckpointingMode.EXACTLY_ONCE);
          org.apache.flink.configuration.Configuration config = new
          org.apache.flink.configuration.Configuration();

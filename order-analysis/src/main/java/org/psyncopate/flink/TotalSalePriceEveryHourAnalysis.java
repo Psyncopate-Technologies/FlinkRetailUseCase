@@ -18,6 +18,7 @@ import org.apache.flink.core.fs.Path;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
+import org.apache.flink.streaming.api.environment.LocalStreamEnvironment;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.aggregation.AggregationFunction;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
@@ -61,7 +62,8 @@ public class TotalSalePriceEveryHourAnalysis {
 
     @SuppressWarnings("deprecation")
     public static void main(String[] args) throws Exception {
-        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        //StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        LocalStreamEnvironment env = StreamExecutionEnvironment.createLocalEnvironment();
         final Logger logger = LoggerFactory.getLogger(TotalSalePriceEveryHourAnalysis.class);
 
         Properties mongoProperties = PropertyFilesLoader.loadProperties("mongodb.properties");
@@ -218,6 +220,8 @@ public class TotalSalePriceEveryHourAnalysis {
         
         KeyedStream<SaleRecord, Boolean> keyedStream = salesWithTimestamps_ds
                             .keyBy(sale -> true);
+        
+        
        // Assuming SaleRecord class has salePrice and timestamp fields
         DataStream<TotalSaleRecord> avgSalePrice_ds = keyedStream
             .keyBy(sale -> true)  // Key all records into a single group
@@ -225,7 +229,6 @@ public class TotalSalePriceEveryHourAnalysis {
             .aggregate(new TotalSumAggregate(), new TotalSaleWindowFunction());
             
             
-        
         String deltaTablePath = deltaLakeProperties.getProperty("storage.filesystem.scheme")
                 + deltaLakeProperties.getProperty("storage.filesystem.s3.bucket.name") + "/"
                 + deltaLakeProperties.getProperty("deltalake.avg.sales.table.name");

@@ -10,11 +10,12 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PortalViewAudit {
 
-    private String productId;
-    private String userId;
-    private long viewTime;
-    private String pageUrl;
+    private String product_id;
+    private String user_id;
+    private long view_time;
+    private String page_url;
     private String ip;
+    @JsonDeserialize(using = MongoDateDeserializer.class)
     private Date ts;
     @JsonDeserialize(using = MongoDateDeserializer.class)
     private Date timestamp;
@@ -22,37 +23,37 @@ public class PortalViewAudit {
     }
     public PortalViewAudit(String productId, String userId, long viewTime, String pageUrl, String ip, Date ts,
             Date timestamp) {
-        this.productId = productId;
-        this.userId = userId;
-        this.viewTime = viewTime;
-        this.pageUrl = pageUrl;
+        this.product_id = productId;
+        this.user_id = userId;
+        this.view_time = viewTime;
+        this.page_url = pageUrl;
         this.ip = ip;
         this.ts = ts;
         this.timestamp = timestamp;
     }
-    public String getProductId() {
-        return productId;
+    public String getProduct_id() {
+        return product_id;
     }
-    public void setProductId(String productId) {
-        this.productId = productId;
+    public void setProduct_id(String productId) {
+        this.product_id = productId;
     }
-    public String getUserId() {
-        return userId;
+    public String getUser_id() {
+        return user_id;
     }
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setUser_id(String userId) {
+        this.user_id = userId;
     }
-    public long getViewTime() {
-        return viewTime;
+    public long getView_time() {
+        return view_time;
     }
-    public void setViewTime(long viewTime) {
-        this.viewTime = viewTime;
+    public void setView_time(long viewTime) {
+        this.view_time = viewTime;
     }
-    public String getPageUrl() {
-        return pageUrl;
+    public String getPage_url() {
+        return page_url;
     }
-    public void setPageUrl(String pageUrl) {
-        this.pageUrl = pageUrl;
+    public void setPage_url(String pageUrl) {
+        this.page_url = pageUrl;
     }
     public String getIp() {
         return ip;
@@ -74,8 +75,8 @@ public class PortalViewAudit {
     }
     @Override
     public String toString() {
-        return "PortalViewAudit [productId=" + productId + ", userId=" + userId + ", viewTime=" + viewTime
-                + ", pageUrl=" + pageUrl + ", ip=" + ip + ", ts=" + ts + ", timestamp=" + timestamp + "]";
+        return "PortalViewAudit [productId=" + product_id + ", userId=" + user_id + ", viewTime=" + view_time
+                + ", pageUrl=" + page_url + ", ip=" + ip + ", ts=" + ts + ", timestamp=" + timestamp + "]";
     }
     
 }

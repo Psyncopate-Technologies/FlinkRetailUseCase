@@ -3,7 +3,7 @@ kind: FlinkDeployment
 metadata:
   name: product-views-recommendations-hourly
 spec:
-  image: dsasidaren/marketing-analysis:1.0.3
+  image: dsasidaren/marketing-analysis:1.0.8
   flinkVersion: v1_19
   restartNonce: 003
   flinkConfiguration:

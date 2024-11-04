@@ -287,20 +287,20 @@ cd inventory-analysis
 You should find a file named Dockerfile
 docker build -t myusername/myapp:latest .
 Build Multiplatform images: ENsure to use containerd to pull and push images - a docker setting - by default it would be classic
-docker buildx build --platform linux/amd64,linux/arm64 -t dsasidaren/inventory-analysis:1.0.6 .
-docker push dsasidaren/inventory-analysis:1.0.6
+docker buildx build --platform linux/amd64,linux/arm64 -t dsasidaren/inventory-analysis:1.0.10 .
+docker push dsasidaren/inventory-analysis:1.0.10
 
 cd order-analysis
 You should find a file named Dockerfile
 Build Multiplatform images: ENsure to use containerd to pull and push images - a docker setting - by default it would be classic
-docker buildx build --platform linux/amd64,linux/arm64 -t dsasidaren/order-analysis:1.0.5 .
-docker push dsasidaren/order-analysis:1.0.5
+docker buildx build --platform linux/amd64,linux/arm64 -t dsasidaren/order-analysis:1.0.11 .
+docker push dsasidaren/order-analysis:1.0.11
 
 cd marketing-analysis
 You should find a file named Dockerfile
 Build Multiplatform images: ENsure to use containerd to pull and push images - a docker setting - by default it would be classic
-docker buildx build --platform linux/amd64,linux/arm64 -t dsasidaren/marketing-analysis:1.0.4 .
-docker push dsasidaren/marketing-analysis:1.0.4
+docker buildx build --platform linux/amd64,linux/arm64 -t dsasidaren/marketing-analysis:1.0.8 .
+docker push dsasidaren/marketing-analysis:1.0.8
 
 cd watchlist-trigger
 You should find a file named Dockerfile

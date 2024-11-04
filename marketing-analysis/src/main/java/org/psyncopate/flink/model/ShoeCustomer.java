@@ -10,11 +10,11 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 public class ShoeCustomer {
 
     public String id;
-    public String firstName;
-    public String lastName;
+    public String first_name;
+    public String last_name;
     public String email;
     public String phone;
-    public String zipCode;
+    public String zip_code;
     public String state;
     public String country;
     @JsonDeserialize(using = MongoDateDeserializer.class)
@@ -31,17 +31,17 @@ public class ShoeCustomer {
     public void setId(String id) {
         this.id = id;
     }
-    public String getFirstName() {
-        return firstName;
+    public String getFirst_name() {
+        return first_name;
     }
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
+    public void setFirst_name(String firstName) {
+        this.first_name = firstName;
     }
-    public String getLastName() {
-        return lastName;
+    public String getLast_name() {
+        return last_name;
     }
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
+    public void setLast_name(String lastName) {
+        this.last_name = lastName;
     }
     public String getEmail() {
         return email;
@@ -55,11 +55,11 @@ public class ShoeCustomer {
     public void setPhone(String phone) {
         this.phone = phone;
     }
-    public String getZipCode() {
-        return zipCode;
+    public String getZip_code() {
+        return zip_code;
     }
-    public void setZipCode(String zipCode) {
-        this.zipCode = zipCode;
+    public void setZip_code(String zipCode) {
+        this.zip_code = zipCode;
     }
     public String getState() {
         return state;
@@ -75,8 +75,8 @@ public class ShoeCustomer {
     }
     @Override
     public String toString() {
-        return "ShoeCustomer [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName + ", email=" + email
-                + ", phone=" + phone + ", zipCode=" + zipCode + ", state=" + state + ", country=" + country
+        return "ShoeCustomer [id=" + id + ", firstName=" + first_name + ", lastName=" + last_name + ", email=" + email
+                + ", phone=" + phone + ", zipCode=" + zip_code + ", state=" + state + ", country=" + country
                 + ", timestamp=" + timestamp + "]";
     }
    

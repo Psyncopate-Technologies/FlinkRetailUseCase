@@ -3,7 +3,7 @@ kind: FlinkDeployment
 metadata:
   name: low-stock-alert
 spec:
-  image: dsasidaren/inventory-analysis:1.0.7
+  image: dsasidaren/inventory-analysis:1.0.10
   flinkVersion: v1_19
   restartNonce: 003
   flinkConfiguration:

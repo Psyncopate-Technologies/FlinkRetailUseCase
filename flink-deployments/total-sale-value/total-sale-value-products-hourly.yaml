@@ -3,7 +3,7 @@ kind: FlinkDeployment
 metadata:
   name: total-sale-value-hourly
 spec:
-  image: dsasidaren/order-analysis:1.0.3
+  image: dsasidaren/order-analysis:1.0.11
   flinkVersion: v1_19
   restartNonce: 003
   flinkConfiguration:

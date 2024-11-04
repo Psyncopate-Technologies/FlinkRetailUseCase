@@ -121,14 +121,14 @@ public class CustomerOrderDemographics {
                 })
                 .build(); */
 
-        DebeziumSourceFunction<String> shoeinventoryString = MongoDBSource.<String>builder()
+        /* DebeziumSourceFunction<String> shoeinventoryString = MongoDBSource.<String>builder()
             .hosts(mongoProperties.getProperty("mongodb.host"))
             .username(mongoProperties.getProperty("mongodb.user"))
             .password(mongoProperties.getProperty("mongodb.password"))
             .databaseList(mongoProperties.getProperty("mongodb.database")) // set captured database, support regexs
             .collectionList(mongoProperties.getProperty("mongodb.database") + "." + appconfigProperties.getProperty("retail.inventory.collection.name")) //set captured collections, support regex
             .deserializer(new JsonDebeziumDeserializationSchema())
-            .build();
+            .build(); */
 
         // Create MongoSource for ShoeOrders Collection
         /* MongoSource<ShoeOrder> shoeorders = MongoSource.<ShoeOrder>builder()
@@ -213,7 +213,7 @@ public class CustomerOrderDemographics {
                 .fromSource(shoeinventory, WatermarkStrategy.noWatermarks(), "Read Shoes Inventory from MongoDB")
                 .setParallelism(1).name("Retrieve Shoes Inventory"); */
 
-        DataStream<Shoe> shoes_ds = env.addSource(shoeinventoryString).map(data -> {
+        /* DataStream<Shoe> shoes_ds = env.addSource(shoeinventoryString).map(data -> {
 
             JsonNode rootNode = objectMapper.readTree(data);
             String fullDocument = rootNode.get("fullDocument").asText();
@@ -223,7 +223,7 @@ public class CustomerOrderDemographics {
         .assignTimestampsAndWatermarks(WatermarkStrategy.<Shoe>forBoundedOutOfOrderness(Duration.ofMinutes(10))
             .withTimestampAssigner((shoe, recordTimestamp) -> shoe.getTimestamp().getTime()))
         .setParallelism(1)
-        .name("Retrieve Shoes Inventory");
+        .name("Retrieve Shoes Inventory"); */
 
         /* DataStream<ShoeOrder> shoeorders_ds = env
                 .fromSource(shoeorders, WatermarkStrategy.noWatermarks(), "Read Shoe Orders from MongoDB")
@@ -408,7 +408,7 @@ public class CustomerOrderDemographics {
             stateOrderCount.put(state, currentCount + 1);
 
             // Emit the updated count for the state
-            out.collect(new CustomerCount(state, customer.getId(), customer.getFirstName()+" "+customer.getLastName(), currentCount + 1, customer.getZipCode()));
+            out.collect(new CustomerCount(state, customer.getId(), customer.getFirst_name()+" "+customer.getLast_name(), currentCount + 1, customer.getZip_code()));
         }
     }
 }

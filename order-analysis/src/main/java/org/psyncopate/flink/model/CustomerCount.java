@@ -38,16 +38,17 @@ public class CustomerCount {
     public void setCustomerCount(int customerCount) {
         this.customerCount = customerCount;
     }
-    @Override
-    public String toString() {
-        return "CustomerCount [state=" + state + ", customerId=" + customerId + ", customerName=" + customerName
-                + ", customerCount=" + customerCount + "]";
-    }
+    
     public String getZipCode() {
         return zipCode;
     }
     public void setZipCode(String zipCode) {
         this.zipCode = zipCode;
+    }
+    @Override
+    public String toString() {
+        return "CustomerCount [state=" + state + ", customerId=" + customerId + ", customerName=" + customerName
+                + ", customerCount=" + customerCount + ", zipCode=" + zipCode + "]";
     }
 
     

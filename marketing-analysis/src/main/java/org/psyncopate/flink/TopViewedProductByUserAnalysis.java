@@ -268,7 +268,7 @@ public class TopViewedProductByUserAnalysis {
         .name("Read Customers");
 
 
-        DataStream<TopViewedProduct> topViewedProducts = portalviews_ds.keyBy(PortalViewAudit :: getUserId)
+        DataStream<TopViewedProduct> topViewedProducts = portalviews_ds.keyBy(PortalViewAudit :: getUser_id)
                                     .window(SlidingEventTimeWindows.of(Time.hours(1), Time.minutes(15)))
                                     .process(new TopViewedProductProcessFunction()).name("Top Viewed Products by every user");
 
@@ -342,7 +342,7 @@ public class TopViewedProductByUserAnalysis {
 
             // Sum viewTime for each product for the given user
             for (PortalViewAudit audit : elements) {
-                productViewTime.put(audit.getProductId(), productViewTime.getOrDefault(audit.getProductId(), 0L) + audit.getViewTime());
+                productViewTime.put(audit.getProduct_id(), productViewTime.getOrDefault(audit.getProduct_id(), 0L) + audit.getView_time());
             }
 
             // Determine the product with the highest view time
@@ -472,7 +472,7 @@ public class TopViewedProductByUserAnalysis {
             // Enrich ProductViewCount with Shoe metadata if available
             ShoeCustomer cust = customerState.get(topViewProduct.getUserId());
             if (cust != null) {
-                out.collect(new EnrichedTopViewedProduct(topViewProduct.getProductId(), topViewProduct.getProductName(), topViewProduct.getBrand(), topViewProduct.getUserId(), cust.getFirstName()+" "+cust.getLastName(), cust.getState(), cust.getCountry(), topViewProduct.getViewCount(), topViewProduct.getWindowStart(), topViewProduct.getWindowEnd()));
+                out.collect(new EnrichedTopViewedProduct(topViewProduct.getProductId(), topViewProduct.getProductName(), topViewProduct.getBrand(), topViewProduct.getUserId(), cust.getFirst_name()+" "+cust.getLast_name(), cust.getState(), cust.getCountry(), topViewProduct.getViewCount(), topViewProduct.getWindowStart(), topViewProduct.getWindowEnd()));
             }else {
                 // Buffer the event if shoe metadata is not available
                 bufferedProducts.add(topViewProduct);
@@ -489,7 +489,7 @@ public class TopViewedProductByUserAnalysis {
             // Emit buffered ProductViewCounts if available
             for (EnrichedTopViewedProduct bufferedProd : bufferedProducts.get()) {
                 if (bufferedProd.getUserId().equals(cust.getId())) {
-                    out.collect(new EnrichedTopViewedProduct(bufferedProd.getProductId(), bufferedProd.getProductName(), bufferedProd.getBrand(), bufferedProd.getUserId(), cust.getFirstName()+" "+cust.getLastName(), cust.getState(), cust.getCountry(), bufferedProd.getViewCount(), bufferedProd.getWindowStart(), bufferedProd.getWindowEnd()));
+                    out.collect(new EnrichedTopViewedProduct(bufferedProd.getProductId(), bufferedProd.getProductName(), bufferedProd.getBrand(), bufferedProd.getUserId(), cust.getFirst_name()+" "+cust.getLast_name(), cust.getState(), cust.getCountry(), bufferedProd.getViewCount(), bufferedProd.getWindowStart(), bufferedProd.getWindowEnd()));
                 }else {
                     // Store non-matching counts for later
                     nonMatchingBufferedProducts.add(bufferedProd);

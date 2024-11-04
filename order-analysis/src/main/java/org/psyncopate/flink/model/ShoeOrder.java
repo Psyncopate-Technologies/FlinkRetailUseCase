@@ -12,6 +12,7 @@ public class ShoeOrder {
     private int order_id;
     private String product_id;
     private String customer_id;
+    @JsonDeserialize(using = MongoDateDeserializer.class)
     private Date ts;
 
     @JsonDeserialize(using = MongoDateDeserializer.class)

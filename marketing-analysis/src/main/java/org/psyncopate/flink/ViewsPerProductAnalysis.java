@@ -212,7 +212,7 @@ public class ViewsPerProductAnalysis {
 
             // Key by productId and apply a sliding window of 1 hour with a slide interval of 15 minutes
             DataStream<ProductViewCount> viewCounts = portalviews_ds
-                    .keyBy(PortalViewAudit::getProductId)  // Key by productId
+                    .keyBy(PortalViewAudit::getProduct_id)  // Key by productId
                     .window(SlidingEventTimeWindows.of(Time.hours(1), Time.minutes(15)))
                     .process(new ProductViewCountProcessFunction()).name("View counts for products");
 
@@ -264,7 +264,7 @@ public class ViewsPerProductAnalysis {
         public void process(String productId, Context context, Iterable<PortalViewAudit> elements, Collector<ProductViewCount> out) {
             long totalViewTime = 0; 
             for (PortalViewAudit event : elements) {
-                totalViewTime += event.getViewTime(); 
+                totalViewTime += event.getView_time(); 
             }
             String windowStart = new Timestamp(context.window().getStart()).toString();
             String windowEnd = new Timestamp(context.window().getEnd()).toString();
