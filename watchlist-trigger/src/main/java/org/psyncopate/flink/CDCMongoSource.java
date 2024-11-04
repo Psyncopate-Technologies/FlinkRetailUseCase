@@ -45,6 +45,7 @@ import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.cdc.connectors.mongodb.MongoDBSource;
 
+@Deprecated
 public class CDCMongoSource {
 
     public static void main(String[] args) throws Exception {

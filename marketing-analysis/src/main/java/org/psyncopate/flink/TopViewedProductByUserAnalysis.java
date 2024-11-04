@@ -11,6 +11,7 @@ import org.apache.flink.table.types.logical.VarCharType;
 import org.apache.flink.types.RowKind;
 
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -26,12 +27,17 @@ import org.apache.flink.api.common.state.MapState;
 import org.apache.flink.api.common.state.MapStateDescriptor;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.common.typeinfo.Types;
+import org.apache.flink.cdc.connectors.mongodb.MongoDBSource;
+import org.apache.flink.cdc.debezium.DebeziumSourceFunction;
+import org.apache.flink.cdc.debezium.JsonDebeziumDeserializationSchema;
+import org.apache.flink.configuration.CheckpointingOptions;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.MemorySize;
 import org.apache.flink.connector.mongodb.source.MongoSource;
 import org.apache.flink.connector.mongodb.source.enumerator.splitter.PartitionStrategy;
 import org.apache.flink.connector.mongodb.source.reader.deserializer.MongoDeserializationSchema;
 import org.apache.flink.core.fs.Path;
+import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -50,12 +56,16 @@ import org.psyncopate.flink.model.TopViewedProduct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.delta.flink.sink.DeltaSink;
 
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.util.Collector;
 
 public class TopViewedProductByUserAnalysis {
+    @SuppressWarnings("deprecation")
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         final Logger logger = LoggerFactory.getLogger(TopViewedProductByUserAnalysis.class);
@@ -64,8 +74,24 @@ public class TopViewedProductByUserAnalysis {
         Properties appconfigProperties = PropertyFilesLoader.loadProperties("appconfig.properties");
         Properties deltaLakeProperties = PropertyFilesLoader.loadProperties("delta-lake.properties");
 
+        // Enable checkpointing for fault tolerance
+        
+         env.enableCheckpointing(30000, CheckpointingMode.EXACTLY_ONCE);
+         org.apache.flink.configuration.Configuration config = new
+         org.apache.flink.configuration.Configuration();
+         config.set(CheckpointingOptions.CHECKPOINT_STORAGE, "filesystem");
+         config.set(CheckpointingOptions.CHECKPOINTS_DIRECTORY,
+         appconfigProperties.getProperty("faulttolerance.filesystem.scheme") +
+         appconfigProperties.getProperty("checkpoint.location"));
+         config.set(CheckpointingOptions.SAVEPOINT_DIRECTORY,
+         appconfigProperties.getProperty("faulttolerance.filesystem.scheme") +
+         appconfigProperties.getProperty("savepoint.location"));
+         env.configure(config);
+
+         ObjectMapper objectMapper = new ObjectMapper();
+
         // Create MongoSource for ShoeOrders Collection
-        MongoSource<PortalViewAudit> portalviews = MongoSource.<PortalViewAudit>builder()
+        /* MongoSource<PortalViewAudit> portalviews = MongoSource.<PortalViewAudit>builder()
                 .setUri(mongoProperties.getProperty("mongodb.uri"))
                 .setDatabase(mongoProperties.getProperty("mongodb.database"))
                 .setCollection(appconfigProperties.getProperty("retail.portal.views.collection.name"))
@@ -93,9 +119,18 @@ public class TopViewedProductByUserAnalysis {
                         return TypeInformation.of(PortalViewAudit.class);
                     }
                 })
-                .build();
+                .build(); */
 
-        MongoSource<Shoe> shoeinventory = MongoSource.<Shoe>builder()
+        DebeziumSourceFunction<String> portalviewsString = MongoDBSource.<String>builder()
+            .hosts(mongoProperties.getProperty("mongodb.host"))
+            .username(mongoProperties.getProperty("mongodb.user"))
+            .password(mongoProperties.getProperty("mongodb.password"))
+            .databaseList(mongoProperties.getProperty("mongodb.database")) // set captured database, support regexs
+            .collectionList(mongoProperties.getProperty("mongodb.database") + "." + appconfigProperties.getProperty("retail.portal.views.collection.name")) //set captured collections, support regex
+            .deserializer(new JsonDebeziumDeserializationSchema())
+            .build();
+
+        /* MongoSource<Shoe> shoeinventory = MongoSource.<Shoe>builder()
                 .setUri(mongoProperties.getProperty("mongodb.uri"))
                 .setDatabase(mongoProperties.getProperty("mongodb.database"))
                 .setCollection(appconfigProperties.getProperty("retail.inventory.collection.name"))
@@ -123,10 +158,19 @@ public class TopViewedProductByUserAnalysis {
                         return TypeInformation.of(Shoe.class);
                     }
                 })
+                .build(); */
+
+        DebeziumSourceFunction<String> shoeinventoryString = MongoDBSource.<String>builder()
+                .hosts(mongoProperties.getProperty("mongodb.host"))
+                .username(mongoProperties.getProperty("mongodb.user"))
+                .password(mongoProperties.getProperty("mongodb.password"))
+                .databaseList(mongoProperties.getProperty("mongodb.database")) // set captured database, support regexs
+                .collectionList(mongoProperties.getProperty("mongodb.database") + "." + appconfigProperties.getProperty("retail.inventory.collection.name")) //set captured collections, support regex
+                .deserializer(new JsonDebeziumDeserializationSchema())
                 .build();
 
         // Create MongoSource for ShoeOrders Collection
-        MongoSource<ShoeCustomer> shoecustomers = MongoSource.<ShoeCustomer>builder()
+        /* MongoSource<ShoeCustomer> shoecustomers = MongoSource.<ShoeCustomer>builder()
                 .setUri(mongoProperties.getProperty("mongodb.uri"))
                 .setDatabase(mongoProperties.getProperty("mongodb.database"))
                 .setCollection(appconfigProperties.getProperty("retail.customer.collection.name"))
@@ -156,29 +200,72 @@ public class TopViewedProductByUserAnalysis {
                         return TypeInformation.of(ShoeCustomer.class);
                     }
                 })
+                .build(); */
+
+        DebeziumSourceFunction<String> shoecustomersString = MongoDBSource.<String>builder()
+                .hosts(mongoProperties.getProperty("mongodb.host"))
+                .username(mongoProperties.getProperty("mongodb.user"))
+                .password(mongoProperties.getProperty("mongodb.password"))
+                .databaseList(mongoProperties.getProperty("mongodb.database")) // set captured database, support regexs
+                .collectionList(mongoProperties.getProperty("mongodb.database") + "." + appconfigProperties.getProperty("retail.customer.collection.name")) //set captured collections, support regex
+                .deserializer(new JsonDebeziumDeserializationSchema())
                 .build();
 
         // Define your sources
-        DataStream<PortalViewAudit> portalviews_ds = env
+        /* DataStream<PortalViewAudit> portalviews_ds = env
         .fromSource(portalviews, WatermarkStrategy
                 .<PortalViewAudit>forMonotonousTimestamps()
                 .withTimestampAssigner((portalView, recordTimestamp) -> portalView.getTimestamp().getTime()), 
                 "Read Portal Views from MongoDB")
         .setParallelism(1)
+        .name("Read Portal Views"); */
+        DataStream<PortalViewAudit> portalviews_ds = env.addSource(portalviewsString).map(data -> {
+    
+            JsonNode rootNode = objectMapper.readTree(data);
+            String fullDocument = rootNode.get("fullDocument").asText();
+            PortalViewAudit portalView = objectMapper.readValue(fullDocument, PortalViewAudit.class);
+            return portalView;
+        })
+        .assignTimestampsAndWatermarks(WatermarkStrategy.<PortalViewAudit>forBoundedOutOfOrderness(Duration.ofMinutes(10))
+            .withTimestampAssigner((portalView, recordTimestamp) -> portalView.getTimestamp().getTime()))
+        .setParallelism(1)
         .name("Read Portal Views");
 
-        DataStream<Shoe> shoes_ds = env
+        /* DataStream<Shoe> shoes_ds = env
             .fromSource(shoeinventory, WatermarkStrategy
             .<Shoe>forMonotonousTimestamps()
             .withTimestampAssigner((shoe, recordTimestamp) -> shoe.getTimestamp().getTime()),  "Read Shoes Inventory from MongoDB")
             .setParallelism(1)
-            .name("Retrieve Shoes Inventory");
+            .name("Retrieve Shoes Inventory"); */
+        DataStream<Shoe> shoes_ds = env.addSource(shoeinventoryString).map(data -> {
 
-        DataStream<ShoeCustomer> shoecustomers_ds = env
+            JsonNode rootNode = objectMapper.readTree(data);
+            String fullDocument = rootNode.get("fullDocument").asText();
+            Shoe shoe = objectMapper.readValue(fullDocument, Shoe.class);
+            return shoe;
+        })
+        .assignTimestampsAndWatermarks(WatermarkStrategy.<Shoe>forBoundedOutOfOrderness(Duration.ofMinutes(10))
+            .withTimestampAssigner((shoe, recordTimestamp) -> shoe.getTimestamp().getTime()))
+        .setParallelism(1)
+        .name("Retrieve Shoes Inventory");
+
+        /* DataStream<ShoeCustomer> shoecustomers_ds = env
         .fromSource(shoecustomers, WatermarkStrategy
         .<ShoeCustomer>forMonotonousTimestamps()
         .withTimestampAssigner((shoecustomer, recordTimestamp) -> shoecustomer.getTimestamp().getTime()),  "Read Customers from MongoDB")
-        .setParallelism(1).name("Read Customers");
+        .setParallelism(1).name("Read Customers"); */
+
+        DataStream<ShoeCustomer> shoecustomers_ds = env.addSource(shoecustomersString).map(data -> {
+
+            JsonNode rootNode = objectMapper.readTree(data);
+            String fullDocument = rootNode.get("fullDocument").asText();
+            ShoeCustomer shoeCust = objectMapper.readValue(fullDocument, ShoeCustomer.class);
+            return shoeCust;
+        })
+        .assignTimestampsAndWatermarks(WatermarkStrategy.<ShoeCustomer>forBoundedOutOfOrderness(Duration.ofMinutes(10))
+            .withTimestampAssigner((shoeCust, recordTimestamp) -> shoeCust.getTimestamp().getTime()))
+        .setParallelism(1)
+        .name("Read Customers");
 
 
         DataStream<TopViewedProduct> topViewedProducts = portalviews_ds.keyBy(PortalViewAudit :: getUserId)

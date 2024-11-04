@@ -2,6 +2,12 @@ package org.psyncopate.flink.model;
 
 import java.util.Date;
 
+import org.psyncopate.flink.utils.MongoDateDeserializer;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Shoe {
     private String id;
     private String brand;
@@ -9,6 +15,7 @@ public class Shoe {
     private int sale_price;
     private double rating;
     private String quantity;
+    @JsonDeserialize(using = MongoDateDeserializer.class)
     private Date timestamp;
     
     public String getId() {

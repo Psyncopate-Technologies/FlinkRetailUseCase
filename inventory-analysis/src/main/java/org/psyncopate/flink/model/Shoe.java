@@ -1,5 +1,13 @@
 package org.psyncopate.flink.model;
 
+import java.util.Date;
+
+import org.psyncopate.flink.utils.MongoDateDeserializer;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Shoe {
     private String id;
     private String brand;
@@ -7,6 +15,9 @@ public class Shoe {
     private int sale_price;
     private double rating;
     private String quantity;
+
+    @JsonDeserialize(using = MongoDateDeserializer.class)
+    private Date timestamp;
     
     public String getId() {
         return id;
@@ -44,10 +55,17 @@ public class Shoe {
     public void setQuantity(String quantity) {
         this.quantity = quantity;
     }
+   
+    public Date getTimestamp() {
+        return timestamp;
+    }
+    public void setTimestamp(Date timestamp) {
+        this.timestamp = timestamp;
+    }
     @Override
     public String toString() {
         return "Shoe [id=" + id + ", brand=" + brand + ", name=" + name + ", sale_price=" + sale_price + ", rating="
-                + rating + ", quantity=" + quantity + "]";
+                + rating + ", quantity=" + quantity + ", timestamp=" + timestamp + "]";
     }
     
 }

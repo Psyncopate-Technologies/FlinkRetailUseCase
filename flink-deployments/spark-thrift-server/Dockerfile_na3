@@ -1,0 +1,14 @@
+# Start from a base Spark image with Delta support
+FROM deltaio/delta-docker:latest
+
+# Set the working directory and copy the entrypoint script
+WORKDIR /opt/spark
+COPY start-thriftserver.sh /opt/spark/
+
+USER root
+# Set permissions if needed and make the script executable
+RUN chmod +x /opt/spark/start-thriftserver.sh
+
+USER NBuser
+# Define the entrypoint to start the Thrift Server automatically
+ENTRYPOINT ["/bin/bash", "/opt/spark/start-thriftserver.sh"]

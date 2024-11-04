@@ -2,6 +2,12 @@ package org.psyncopate.flink.model;
 
 import java.util.Date;
 
+import org.psyncopate.flink.utils.MongoDateDeserializer;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PortalViewAudit {
 
     private String productId;
@@ -10,6 +16,7 @@ public class PortalViewAudit {
     private String pageUrl;
     private String ip;
     private Date ts;
+    @JsonDeserialize(using = MongoDateDeserializer.class)
     private Date timestamp;
     public PortalViewAudit() {
     }
