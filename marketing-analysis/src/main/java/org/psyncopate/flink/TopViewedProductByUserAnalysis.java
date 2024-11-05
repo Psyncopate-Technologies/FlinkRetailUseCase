@@ -40,10 +40,14 @@ import org.apache.flink.core.fs.Path;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
+import org.apache.flink.streaming.api.environment.LocalStreamEnvironment;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.co.KeyedCoProcessFunction;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
+import org.apache.flink.streaming.api.windowing.assigners.EventTimeSessionWindows;
+import org.apache.flink.streaming.api.windowing.assigners.ProcessingTimeSessionWindows;
 import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;
+import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import org.bson.BsonDocument;
 import org.psyncopate.flink.ViewsPerProductAnalysis.ShoeMetadataEnricher;
 import org.psyncopate.flink.model.EnrichedProductViewCount;
@@ -68,6 +72,7 @@ public class TopViewedProductByUserAnalysis {
     @SuppressWarnings("deprecation")
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        //LocalStreamEnvironment env = StreamExecutionEnvironment.createLocalEnvironment();
         final Logger logger = LoggerFactory.getLogger(TopViewedProductByUserAnalysis.class);
 
         Properties mongoProperties = PropertyFilesLoader.loadProperties("mongodb.properties");
@@ -226,11 +231,18 @@ public class TopViewedProductByUserAnalysis {
             PortalViewAudit portalView = objectMapper.readValue(fullDocument, PortalViewAudit.class);
             return portalView;
         })
-        .assignTimestampsAndWatermarks(WatermarkStrategy.<PortalViewAudit>forBoundedOutOfOrderness(Duration.ofMinutes(10))
+        .assignTimestampsAndWatermarks(WatermarkStrategy.<PortalViewAudit>forMonotonousTimestamps()
             .withTimestampAssigner((portalView, recordTimestamp) -> portalView.getTimestamp().getTime()))
         .setParallelism(1)
         .name("Read Portal Views");
 
+        /* portalviews_ds.map(ele -> {
+            System.out.println("TimeWindow===>"+ ele.getTimestamp());
+            return ele;
+        }); */
+
+
+        
         /* DataStream<Shoe> shoes_ds = env
             .fromSource(shoeinventory, WatermarkStrategy
             .<Shoe>forMonotonousTimestamps()
@@ -269,10 +281,22 @@ public class TopViewedProductByUserAnalysis {
 
 
         DataStream<TopViewedProduct> topViewedProducts = portalviews_ds.keyBy(PortalViewAudit :: getUser_id)
-                                    .window(SlidingEventTimeWindows.of(Time.hours(1), Time.minutes(15)))
+                                     .window(EventTimeSessionWindows.<PortalViewAudit>withDynamicGap((element) -> {
+                                        if(element.getView_time() > 50) {
+                                            return Duration.ofDays(1).toMillis();   //Set session gap as 1 day
+                                        }else{
+                                            return Duration.ofHours(12).toMillis();  // Set session gap as 12hrs
+                                        }
+                                    })) 
+                                    //.window(SlidingEventTimeWindows.of(Time.hours(1), Time.minutes(15)))
+                                    //.window(TumblingEventTimeWindows.of(Duration.ofDays(1)))
                                     .process(new TopViewedProductProcessFunction()).name("Top Viewed Products by every user");
 
         
+        /* topViewedProducts.map((ele) -> {
+            System.out.println("TopProds--->"+ ele.getWindowStart());
+            return ele;
+        }); */
         // Key the shoes stream by product ID
         KeyedStream<Shoe, String> keyedShoes = shoes_ds.keyBy(Shoe::getId);
         // Key the shoes stream by product ID
@@ -308,6 +332,7 @@ public class TopViewedProductByUserAnalysis {
         // Create and add the Delta sink
         DataStream<RowData> product_count_map = userEnrichedTopViewedProducts.map( enrichedTopViewdProduct -> {
             logger.info("Top Viewed Product by Users--->"+ enrichedTopViewdProduct );
+            //System.out.println("Top Viewed Product by Users--->"+ enrichedTopViewdProduct );
             GenericRowData rowData = new GenericRowData(RowKind.INSERT, 10); 
             rowData.setField(0, StringData.fromString(enrichedTopViewdProduct.getProductId()));
             rowData.setField(1, StringData.fromString(enrichedTopViewdProduct.getProductName()));
@@ -330,7 +355,7 @@ public class TopViewedProductByUserAnalysis {
         }).print(); */
 
         // Execute the job
-        env.execute("Top Viewed products by User for past hour in an interval of 15 mins");
+        env.execute("Product Viewed the most by Users - Session Window(Dynamic Session gap)");
     }
 
     public static class TopViewedProductProcessFunction extends ProcessWindowFunction<PortalViewAudit, TopViewedProduct, String, TimeWindow> {
@@ -339,6 +364,7 @@ public class TopViewedProductByUserAnalysis {
         public void process(String userId, Context context, Iterable<PortalViewAudit> elements, Collector<TopViewedProduct> out) {
             // Map to hold the total view time for each product
             Map<String, Long> productViewTime = new HashMap<>();
+            
 
             // Sum viewTime for each product for the given user
             for (PortalViewAudit audit : elements) {

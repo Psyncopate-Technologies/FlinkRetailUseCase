@@ -4,11 +4,17 @@ public class ProductOrderCount {
 
     private String productId;
     private long orderCount;
+    private String brand;
+    private String productName;
     private String windowStart;
     private String windowEnd;
-    public ProductOrderCount(String productId, long orderCount, String windowStart, String windowEnd) {
+    
+    public ProductOrderCount(String productId, long orderCount, String brand, String productName, String windowStart,
+            String windowEnd) {
         this.productId = productId;
         this.orderCount = orderCount;
+        this.brand = brand;
+        this.productName = productName;
         this.windowStart = windowStart;
         this.windowEnd = windowEnd;
     }
@@ -36,10 +42,23 @@ public class ProductOrderCount {
     public void setWindowEnd(String windowEnd) {
         this.windowEnd = windowEnd;
     }
+    
+    public String getBrand() {
+        return brand;
+    }
+    public void setBrand(String brand) {
+        this.brand = brand;
+    }
+    public String getProductName() {
+        return productName;
+    }
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
     @Override
     public String toString() {
-        return "ProductOrderCount [productId=" + productId + ", orderCount=" + orderCount + ", windowStart="
-                + windowStart + ", windowEnd=" + windowEnd + "]";
+        return "ProductOrderCount [productId=" + productId + ", orderCount=" + orderCount + ", brand=" + brand
+                + ", productName=" + productName + ", windowStart=" + windowStart + ", windowEnd=" + windowEnd + "]";
     }
     
 }

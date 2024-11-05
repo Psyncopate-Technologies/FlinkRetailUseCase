@@ -1,3 +1,6 @@
+networks:
+  flink-network:
+    driver: bridge
 services:
   broker:
     image: confluentinc/cp-server:7.5.0
@@ -233,8 +236,3 @@ services:
       ME_CONFIG_BASICAUTH_USERNAME: root
       ME_CONFIG_BASICAUTH_PASSWORD: password
       ME_CONFIG_MONGODB_SERVER: mongo
-
-
-networks:
-  flink-network:
-    driver: bridge

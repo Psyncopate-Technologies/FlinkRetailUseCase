@@ -248,7 +248,7 @@ db.shoe_orders.aggregate([
 Order Analysis
 ---
 UC1: From a particulat state, how many orders have been placed by distinct customers
-UC2: How many orders of each product has been placed every day - Pending
+UC2: How many orders of each product has been placed every day 
 UC3: Sale Values of products sold every past hour in an interval of 15 mins
 
 docker exec flink-jobmanager flink run -Dtaskmanager.heap.size=2048m -c org.psyncopate.flink.CustomerOrderDemographics /opt/flink/jobs/order-analysis-1.0-SNAPSHOT.jar
@@ -261,8 +261,8 @@ docker exec flink-jobmanager flink run -Dtaskmanager.heap.size=2048m -c org.psyn
 =========
 Marketing Analysis
 ---
-UC1: Number of views of each product over last hour in an interval of 15 mins along with expansion of product details - Pending
-UC2: Pick the top viewed product for every user over last hour in an interval of 15 mins - erich the product and user metadata
+UC1: Number of views of each product over last hour in an interval of 15 mins along with expansion of product details - Determine the trending products
+UC2: Pick the top viewed product for every user using Session window - erich the product and user metadata
 
 docker exec flink-jobmanager flink run -Dtaskmanager.heap.size=2048m -c org.psyncopate.flink.ViewsPerProductAnalysis /opt/flink/jobs/marketing-analysis-1.0-SNAPSHOT.jar
 
@@ -293,14 +293,14 @@ docker push dsasidaren/inventory-analysis:1.0.10
 cd order-analysis
 You should find a file named Dockerfile
 Build Multiplatform images: ENsure to use containerd to pull and push images - a docker setting - by default it would be classic
-docker buildx build --platform linux/amd64,linux/arm64 -t dsasidaren/order-analysis:1.0.11 .
-docker push dsasidaren/order-analysis:1.0.11
+docker buildx build --platform linux/amd64,linux/arm64 -t dsasidaren/order-analysis:1.0.12 .
+docker push dsasidaren/order-analysis:1.0.12
 
 cd marketing-analysis
 You should find a file named Dockerfile
 Build Multiplatform images: ENsure to use containerd to pull and push images - a docker setting - by default it would be classic
-docker buildx build --platform linux/amd64,linux/arm64 -t dsasidaren/marketing-analysis:1.0.8 .
-docker push dsasidaren/marketing-analysis:1.0.8
+docker buildx build --platform linux/amd64,linux/arm64 -t dsasidaren/marketing-analysis:1.0.9 .
+docker push dsasidaren/marketing-analysis:1.0.9
 
 cd watchlist-trigger
 You should find a file named Dockerfile
@@ -405,7 +405,7 @@ docker build -t total-sale-value .
 # TO launch jupyter server and develop notebooks
 docker run -d -v ./delta-tables:/opt/spark/delta-tables --name total-sale-value-app -p 8866:8866 total-sale-value
 
-Top Viewed Products by Users every hour
+Top Viewed Products by Users
 ------
 cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/top-viewed-products
 docker build -t top-viewed-product-personalized .
@@ -419,10 +419,23 @@ docker build -t watchlist-trigger .
 # To launch jupyter server and develop notebooks
 docker run -d -v ./delta-tables:/opt/spark/delta-tables --name watchlist-trigger-app -p 8866:8866 watchlist-trigger
 
+Product Demand on daily basis
+-----
+cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/product-demand-analysis
+docker build -t product-demand-daily .
+# To launch jupyter server and develop notebooks
+docker run -d -v ./delta-tables:/opt/spark/delta-tables --name product-demand-daily-app -p 8866:8866 product-demand-daily
+
+Product Views Trend for past hour Analysis
+------
+cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/product-trend-analysis
+docker build -t product-views-trend .
+# To launch jupyter server and develop notebooks
+docker run -d -v ./delta-tables:/opt/spark/delta-tables --name product-views-trend-app -p 8866:8866 product-views-trend
 
 Demo Execution:
 ====
-1. Low stock Alert
+1. Low stock Alert - Inventory Analytics
 
 PPT - Usecase explanation brief
 cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/low-stock-alert
@@ -434,7 +447,7 @@ wait until the job is completed
 http://localhost:8866
 ./undeploy-flink-job.sh 
 
-2. Customer Demogrpahics
+2. Customer Demogrpahics - Order Analytics
 
 PPT - Usecase explanation brief
 cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/customer-demographics
@@ -446,7 +459,7 @@ wait until the job is completed
 http://localhost:8866
 ./undeploy-flink-job.sh 
 
-3. Total Sale Value for the past hour
+3. Total Sale Value for the past hour - Order Analytics - Tumbling Window
 PPT - Usecase explanation brief
 cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/total-sale-value
 ./refresh-dashboard.sh voila
@@ -457,7 +470,7 @@ wait until the job is completed
 http://localhost:8866
 ./undeploy-flink-job.sh 
 
-4. Top Viewed Products by Users during past hour
+4. Top Viewed Products by Users during past hour - Marketing Analytics - Sliding Window
 PPT - Usecase explanation brief
 cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/top-viewed-products
 ./refresh-dashboard.sh voila
@@ -468,9 +481,31 @@ wait until the job is completed
 http://localhost:8866
 ./undeploy-flink-job.sh 
 
-5. Watchlist trigger
+5. Watchlist trigger - CEP
 PPT - Usecase explanation brief
 cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/watchlist-trigger
+./refresh-dashboard.sh voila
+http://localhost:8866
+./deploy-flink-job.sh 
+wait until the job is completed
+./refresh-dashboard.sh refresh
+http://localhost:8866
+./undeploy-flink-job.sh 
+
+6. Product Demand on daily basis - Order Analytics - Session Window
+PPT - Usecase explanation brief
+cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/product-demand-daily
+./refresh-dashboard.sh voila
+http://localhost:8866
+./deploy-flink-job.sh 
+wait until the job is completed
+./refresh-dashboard.sh refresh
+http://localhost:8866
+./undeploy-flink-job.sh 
+
+7. Product Trending based on views - hourly - Sliding Window
+PPT - Usecase explanation brief
+cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/product-trend-analysis
 ./refresh-dashboard.sh voila
 http://localhost:8866
 ./deploy-flink-job.sh 

@@ -213,14 +213,14 @@ public class OrderCountEveryDayAnalysis {
                     }
                 })
                 .build(); */
-        DebeziumSourceFunction<String> shoecustomersString = MongoDBSource.<String>builder()
+        /* DebeziumSourceFunction<String> shoecustomersString = MongoDBSource.<String>builder()
                 .hosts(mongoProperties.getProperty("mongodb.host"))
                 .username(mongoProperties.getProperty("mongodb.user"))
                 .password(mongoProperties.getProperty("mongodb.password"))
                 .databaseList(mongoProperties.getProperty("mongodb.database")) // set captured database, support regexs
                 .collectionList(mongoProperties.getProperty("mongodb.database") + "." + appconfigProperties.getProperty("retail.customer.collection.name")) //set captured collections, support regex
                 .deserializer(new JsonDebeziumDeserializationSchema())
-                .build();
+                .build(); */
 
         /* DataStream<Shoe> shoes_ds = env
                 .fromSource(shoeinventory, WatermarkStrategy.forMonotonousTimestamps(), "Read Shoes Inventory from MongoDB")
@@ -271,6 +271,13 @@ public class OrderCountEveryDayAnalysis {
         .window(TumblingEventTimeWindows.of(Time.days(1))) // 1-day window
         .process(new CountAggFunction()); // Use a custom aggregation function
 
+        // Key the shoes stream by product ID
+        KeyedStream<Shoe, String> keyedShoes = shoes_ds.keyBy(Shoe::getId);
+
+        DataStream<ProductOrderCount> enrichedproductOrderCount = productOrderCount.keyBy(ProductOrderCount :: getProductId)
+            .connect(keyedShoes)
+            .process(new ShoeMetadataEnricher()).name("Enrich Product details");
+
 
         // Print the counts
        /*  productOrderCount.addSink(new SinkFunction<Tuple3<String, Long, Tuple2<String, String>>>() {
@@ -282,10 +289,10 @@ public class OrderCountEveryDayAnalysis {
             }
         }); */
 
-        productOrderCount.map(prodCount -> {
+       /*  productOrderCount.map(prodCount -> {
             logger.info("Number of Order for a product per day: "+ prodCount);
             return prodCount;
-        }).print();
+        }).print(); */
         
 
         
@@ -299,17 +306,21 @@ public class OrderCountEveryDayAnalysis {
         RowType rowType = new RowType(Arrays.asList(
                 new RowType.RowField("product_id", new VarCharType()),
                 new RowType.RowField("order_count", new BigIntType()),
+                new RowType.RowField("brand", new VarCharType()),
+                new RowType.RowField("name", new VarCharType()),
                 new RowType.RowField("starttime", new VarCharType()),
                 new RowType.RowField("endtime", new VarCharType())));
 
         // Create and add the Delta sink
-        DataStream<RowData> product_count_map = productOrderCount.map( prodCount -> {
+        DataStream<RowData> product_count_map = enrichedproductOrderCount.map( prodCount -> {
             logger.info("Number of Order for a product per day: "+ prodCount );
-            GenericRowData rowData = new GenericRowData(RowKind.INSERT, 4); 
+            GenericRowData rowData = new GenericRowData(RowKind.INSERT, 6); 
             rowData.setField(0, StringData.fromString(prodCount.getProductId()));
             rowData.setField(1, prodCount.getOrderCount());
-            rowData.setField(2, StringData.fromString(prodCount.getWindowStart()));
-            rowData.setField(3, StringData.fromString(prodCount.getWindowEnd()));
+            rowData.setField(2, StringData.fromString(prodCount.getBrand()));
+            rowData.setField(3, StringData.fromString(prodCount.getProductName()));
+            rowData.setField(4, StringData.fromString(prodCount.getWindowStart()));
+            rowData.setField(5, StringData.fromString(prodCount.getWindowEnd()));
             return rowData;
         });
         createDeltaSink(product_count_map, deltaTablePath, rowType); 
@@ -361,8 +372,67 @@ public class OrderCountEveryDayAnalysis {
             String windowEnd = formatter.format(Instant.ofEpochMilli(windowEndMillis));
 
             // Emit product_id, count, and a tuple containing window start and end times
-            ProductOrderCount productOrderCount = new ProductOrderCount(productId, count, windowStart, windowEnd);
+            ProductOrderCount productOrderCount = new ProductOrderCount(productId, count, "", "", windowStart, windowEnd);
             out.collect(productOrderCount);
+        }
+    }
+
+    // KeyedCoProcessFunction to enrich ProductViewCount with Shoe metadata
+    public static class ShoeMetadataEnricher extends KeyedCoProcessFunction<String, ProductOrderCount, Shoe, ProductOrderCount> {
+        // State to store Shoe metadata
+        private MapState<String, Shoe> shoeState;
+        private ListState<ProductOrderCount> bufferedOrderCounts;
+
+        @Override
+        public void open(Configuration parameters) throws Exception {
+            MapStateDescriptor<String, Shoe> descriptor = new MapStateDescriptor<>(
+                "shoeState", // State name
+                String.class, // Key type
+                Shoe.class // Value type (Shoe class)
+            );
+            shoeState = getRuntimeContext().getMapState(descriptor);
+
+            ListStateDescriptor<ProductOrderCount> orderCountDescriptor = new ListStateDescriptor<>(
+                "bufferedViewCounts",
+                ProductOrderCount.class
+            );
+            bufferedOrderCounts = getRuntimeContext().getListState(orderCountDescriptor);
+        }
+
+        @Override
+        public void processElement1(ProductOrderCount orderCount, Context ctx, Collector<ProductOrderCount> out) throws Exception {
+            // Enrich ProductViewCount with Shoe metadata if available
+            Shoe shoe = shoeState.get(orderCount.getProductId());
+            if (shoe != null) {
+                out.collect(new ProductOrderCount(orderCount.getProductId(), orderCount.getOrderCount(), shoe.getBrand(), shoe.getName(), orderCount.getWindowStart(), orderCount.getWindowEnd()));
+            }else {
+                // Buffer the event if shoe metadata is not available
+                bufferedOrderCounts.add(orderCount);
+            }
+        }
+
+        @Override
+        public void processElement2(Shoe shoe, Context ctx, Collector<ProductOrderCount> out) throws Exception {
+            // Update state with new Shoe metadata
+            shoeState.put(shoe.getId(), shoe);
+
+            List<ProductOrderCount> nonMatchingBufferedCounts = new ArrayList<>();
+
+            // Emit buffered ProductViewCounts if available
+            for (ProductOrderCount bufferedViewCount : bufferedOrderCounts.get()) {
+                if (bufferedViewCount.getProductId().equals(shoe.getId())) {
+                    out.collect(new ProductOrderCount(bufferedViewCount.getProductId(), bufferedViewCount.getOrderCount(), shoe.getBrand(), shoe.getName(), bufferedViewCount.getWindowStart(), bufferedViewCount.getWindowEnd()));
+                }else {
+                    // Store non-matching counts for later
+                    nonMatchingBufferedCounts.add(bufferedViewCount);
+                }
+                
+            }
+            // Clear buffered state
+            bufferedOrderCounts.clear();
+            for (ProductOrderCount count : nonMatchingBufferedCounts) {
+                bufferedOrderCounts.add(count);
+            }
         }
     }
 }

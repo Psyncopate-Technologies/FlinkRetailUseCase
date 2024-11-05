@@ -1,9 +1,9 @@
 apiVersion: flink.apache.org/v1beta1
 kind: FlinkDeployment
 metadata:
-  name: product-views-recommendations-hourly
+  name: product-demand-daily
 spec:
-  image: dsasidaren/marketing-analysis:1.0.8
+  image: dsasidaren/order-analysis:1.0.12
   flinkVersion: v1_19
   restartNonce: 003
   flinkConfiguration:
@@ -15,7 +15,7 @@ spec:
   serviceAccount: flink
   jobManager:
     resource:
-      memory: "2048m"
+      memory: "3072m"
       cpu: 1
     podTemplate:
       spec:
@@ -30,7 +30,7 @@ spec:
             claimName: flink-pvc
   taskManager:
     resource:
-      memory: "2048m"
+      memory: "3072m"
       cpu: 1
     podTemplate:
       spec:
@@ -44,8 +44,8 @@ spec:
           persistentVolumeClaim:
             claimName: flink-pvc
   job:
-    jarURI: local:///opt/flink/lib/marketing-analysis-1.0-SNAPSHOT.jar
-    entryClass: org.psyncopate.flink.ViewsPerProductAnalysis
+    jarURI: local:///opt/flink/lib/order-analysis-1.0-SNAPSHOT.jar
+    entryClass: org.psyncopate.flink.OrderCountEveryDayAnalysis
     parallelism: 1
     upgradeMode: savepoint
     savepointTriggerNonce: 003

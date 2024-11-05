@@ -3,7 +3,7 @@ kind: FlinkDeployment
 metadata:
   name: top-viewed-product-personalized
 spec:
-  image: dsasidaren/marketing-analysis:1.0.8
+  image: dsasidaren/marketing-analysis:1.0.9
   flinkVersion: v1_19
   restartNonce: 003
   flinkConfiguration:

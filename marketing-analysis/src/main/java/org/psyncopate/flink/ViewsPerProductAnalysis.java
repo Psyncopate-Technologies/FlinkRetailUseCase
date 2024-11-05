@@ -23,6 +23,7 @@ import org.apache.flink.core.fs.Path;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
+import org.apache.flink.streaming.api.environment.LocalStreamEnvironment;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.aggregation.AggregationFunction;
 import org.apache.flink.streaming.api.functions.co.KeyedCoProcessFunction;
@@ -71,6 +72,7 @@ public class ViewsPerProductAnalysis {
     @SuppressWarnings("deprecation")
     public static void main(String[] args) throws Exception{
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        //LocalStreamEnvironment env = StreamExecutionEnvironment.createLocalEnvironment();
         final Logger logger = LoggerFactory.getLogger(ViewsPerProductAnalysis.class);
 
         Properties mongoProperties = PropertyFilesLoader.loadProperties("mongodb.properties");
@@ -216,6 +218,11 @@ public class ViewsPerProductAnalysis {
                     .window(SlidingEventTimeWindows.of(Time.hours(1), Time.minutes(15)))
                     .process(new ProductViewCountProcessFunction()).name("View counts for products");
 
+                    viewCounts.map(ele -> {
+                System.out.println(ele.getStarttime());
+                return ele;
+            });
+
             // Key the shoes stream by product ID
             KeyedStream<Shoe, String> keyedShoes = shoes_ds.keyBy(Shoe::getId);
 
@@ -253,7 +260,7 @@ public class ViewsPerProductAnalysis {
             createDeltaSink(product_count_map, deltaTablePath, rowType); 
 
         // Execute the job
-        env.execute("Product Views for past hour in an interval of 15 mins");
+        env.execute("Trending products for past hour in an interval of 15 mins");
 
     }
     // ProcessWindowFunction to count views per product
