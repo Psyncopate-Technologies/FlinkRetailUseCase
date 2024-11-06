@@ -513,3 +513,18 @@ wait until the job is completed
 ./refresh-dashboard.sh refresh
 http://localhost:8866
 ./undeploy-flink-job.sh 
+
+
+Run Flink SQL Jobs using CP Flink Operator:
+-----
+Ensure to have your sql files for your job placed under
+/Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-sql-runner/sql-scripts
+
+cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-sql-runner
+mvn clean package
+docker build . -t flink-sql-runner:latest
+
+Create a K8s Flink Deployment CR under '/Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/flink-sql-jobs'
+
+cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/flink-sql-jobs
+kubectl apply -f <CR_name>.yaml
