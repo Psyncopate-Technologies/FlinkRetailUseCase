@@ -32,7 +32,39 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: flink-pvc-healthcare-rawfiles
+  name: flink-pvc-claim-diagnosis-rawfiles
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+  storageClassName: hostpath
+  selector:
+    matchLabels:
+      name: flink-pv
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: flink-pvc-claim-procedure-rawfiles
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+  storageClassName: hostpath
+  selector:
+    matchLabels:
+      name: flink-pv
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: flink-pvc-claim-provider-rawfiles
 spec:
   accessModes:
   - ReadWriteOnce

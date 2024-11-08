@@ -52,7 +52,7 @@ spec:
             claimName: flink-pvc
         - name: flink-process-claim-files
           persistentVolumeClaim:
-            claimName: flink-pvc-healthcare-rawfiles
+            claimName: flink-pvc-claim-provider-rawfiles
   taskManager:
     resource:
       memory: "2048m"
@@ -75,7 +75,7 @@ spec:
             claimName: flink-pvc
         - name: flink-process-claim-files
           persistentVolumeClaim:
-            claimName: flink-pvc-healthcare-rawfiles
+            claimName: flink-pvc-claim-provider-rawfiles
   job:
     jarURI: local:///opt/flink/usrlib/sql-runner.jar
     args: ["/opt/flink/usrlib/sql-scripts/ingest_claim_provider_data.sql"]
