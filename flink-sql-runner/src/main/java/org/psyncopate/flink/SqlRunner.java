@@ -20,9 +20,11 @@
  import org.apache.flink.configuration.Configuration;
  import org.apache.flink.table.api.TableEnvironment;
  import org.apache.flink.util.FileUtils;
- 
- //import org.slf4j.Logger;
- //import org.slf4j.LoggerFactory;
+
+import org.slf4j.Logger;
+
+//import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
  
  import java.io.File;
  import java.util.ArrayList;
@@ -33,12 +35,13 @@
  /** Main class for executing SQL scripts. */
  public class SqlRunner {
  
-     //private static final Logger logger = LoggerFactory.getLogger(SqlRunner.class);
+     
  
      private static final String STATEMENT_DELIMITER = ";"; // a statement should end with `;`
      private static final String LINE_DELIMITER = "\n";
  
-     private static final String COMMENT_PATTERN = "(--.*)|(((\\/\\*)+?[\\w\\W]+?(\\*\\/)+))";
+     //private static final String COMMENT_PATTERN = "(--.*)|(((\\/\\*)+?[\\w\\W]+?(\\*\\/)+))";
+     private static final String COMMENT_PATTERN = "(--.*)|((\\/\\*(?!\\+).*?\\*\\/))";
  
      private static final Pattern SET_STATEMENT_PATTERN =
              Pattern.compile("SET\\s+'(\\S+)'\\s+=\\s+'(.*)';", Pattern.CASE_INSENSITIVE);
@@ -49,6 +52,8 @@
      private static final String ESCAPED_END_CERTIFICATE = "=====END CERTIFICATE=====";
  
      public static void main(String[] args) throws Exception {
+
+        final Logger logger = LoggerFactory.getLogger(SqlRunner.class);
          if (args.length != 1) {
              throw new Exception("Exactly one argument is expected.");
          }
@@ -66,7 +71,7 @@
                  String value = setMatcher.group(2);
                  tableEnv.getConfig().getConfiguration().setString(key, value);
              } else {
-                 //logger.info("Executing:\n{}", statement);
+                 logger.info("Executing=====================>:\n{}", statement);
                  tableEnv.executeSql(statement);
              }
          }
