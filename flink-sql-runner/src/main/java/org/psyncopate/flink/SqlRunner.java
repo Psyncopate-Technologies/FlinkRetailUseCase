@@ -17,8 +17,10 @@
 
  package org.psyncopate.flink;
 
- import org.apache.flink.configuration.Configuration;
- import org.apache.flink.table.api.TableEnvironment;
+ import org.apache.flink.cdc.common.configuration.ConfigOptions;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.runtime.blob.FileSystemBlobStore;
+import org.apache.flink.table.api.TableEnvironment;
  import org.apache.flink.util.FileUtils;
 
 import org.slf4j.Logger;
@@ -59,7 +61,7 @@ import org.slf4j.Logger;
          }
          var script = FileUtils.readFileUtf8(new File(args[0]));
          var statements = parseStatements(script);
- 
+         
          var tableEnv = TableEnvironment.create(new Configuration());
  
          for (String statement : statements) {

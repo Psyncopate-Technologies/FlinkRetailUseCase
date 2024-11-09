@@ -24,11 +24,20 @@ spec:
   image: flink-sql-runner:latest
   flinkVersion: v1_19
   flinkConfiguration:
+    #ENABLE_BUILT_IN_PLUGINS: flink-azure-fs-hadoop-1.19.1.jar
+    #flink.hadoop.fs.azure.account.auth.type.molinahealthcareusecase.dfs.core.windows.net: SharedKey
+    fs.azure.account.key.molinahealthcareusecase.dfs.core.windows.net: <AZ STORAGE_ACCOUNT ACCESS KEY>
     taskmanager.numberOfTaskSlots: "1"
     classloader.resolve-order: "parent-first"
     state.backend: rocksdb
-    state.savepoints.dir: file:///mount/savepoints
-    state.checkpoints.dir: file:///mount/checkpoints
+    #state.savepoints.dir: file:///mount/savepoints
+    #state.checkpoints.dir: file:///mount/checkpoints
+    kubernetes.decorator.hadoop-conf-mount.enabled: 'true'
+    kubernetes.hadoop.conf.config-map.name: core-site-config
+    #HADOOP_CONF_DIR: /opt/flink/usrlib/configs
+    #HADOOP_CLASSPATH: /etc/hadoop
+    state.savepoints.dir: abfss://molina@molinahealthcareusecase.dfs.core.windows.net/savepoints
+    state.checkpoints.dir: abfss://molina@molinahealthcareusecase.dfs.core.windows.net/checkpoints
   serviceAccount: flink
   jobManager:
     resource:
@@ -39,13 +48,22 @@ spec:
         containers:
         - name: flink-main-container
           env:
-            - name: ENABLE_BUILT_IN_PLUGINS
-              value: flink-azure-fs-hadoop-1.19.1.jar
+            #- name: ENABLE_BUILT_IN_PLUGINS
+            #  value: flink-azure-fs-hadoop-1.19.1.jar
+            #- name: HADOOP_OPTIONAL_TOOLS
+            #  value: hadoop-azure
+            #- name: HADOOP_CONF_DIR
+            #  value: /opt/flink/conf
+            #- name: HADOOP_CLASSPATH
+            #  value: /etc/hadoop
           volumeMounts:
           - mountPath: /mount
             name: flink-persistent-storage
           - mountPath: /inputFiles/claim_diagnosis
             name: flink-process-claim-files
+          #- name: core-site-config
+          #  mountPath: /opt/flink/conf/core-site.xml
+          #  subPath: core-site.xml
         volumes:
         - name: flink-persistent-storage
           persistentVolumeClaim:
@@ -53,6 +71,9 @@ spec:
         - name: flink-process-claim-files
           persistentVolumeClaim:
             claimName: flink-pvc-claim-diagnosis-rawfiles
+        #- name: core-site-config
+        #  configMap:
+        #    name: core-site-config
   taskManager:
     resource:
       memory: "2048m"
@@ -62,13 +83,22 @@ spec:
         containers:
         - name: flink-main-container
           env:
-            - name: ENABLE_BUILT_IN_PLUGINS
-              value: flink-azure-fs-hadoop-1.19.1.jar
+            #- name: ENABLE_BUILT_IN_PLUGINS
+            #  value: flink-azure-fs-hadoop-1.19.1.jar
+            #- name: HADOOP_OPTIONAL_TOOLS
+            #  value: hadoop-azure
+            #- name: HADOOP_CONF_DIR
+            #  value: /opt/flink/conf
+            #- name: HADOOP_CLASSPATH
+            #  value: "/etc/hadoop"
           volumeMounts:
           - mountPath: /mount
             name: flink-persistent-storage
           - mountPath: /inputFiles/claim_diagnosis
             name: flink-process-claim-files
+          #- name: core-site-config
+          #  mountPath: /opt/flink/conf/core-site.xml
+          #  subPath: core-site.xml
         volumes:
         - name: flink-persistent-storage
           persistentVolumeClaim:
@@ -76,6 +106,9 @@ spec:
         - name: flink-process-claim-files
           persistentVolumeClaim:
             claimName: flink-pvc-claim-diagnosis-rawfiles
+        #- name: core-site-config
+        #  configMap:
+        #    name: core-site-config
   job:
     jarURI: local:///opt/flink/usrlib/sql-runner.jar
     args: ["/opt/flink/usrlib/sql-scripts/ingest_claim_diagnosis_data.sql"]

@@ -26,7 +26,8 @@ CREATE TABLE claim_procedure (
 ) WITH (
   'connector' = 'filesystem',
   'source.monitor-interval' = '5',
-  'path' = 'file:///inputFiles/claim_procedure',
+  --'path' = 'file:///inputFiles/claim_procedure',
+  'path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/inputFiles/claim_procedure', --ADLS
   'format' = 'csv'
 );
 
@@ -45,7 +46,8 @@ CREATE TABLE claim_procedure_delta_table (
 )
 WITH (
     'connector' = 'delta',
-    'table-path' = 'file:///mount/claim_procedure_delta_table'
+    --'table-path' = 'file:///mount/claim_procedure_delta_table'
+    'table-path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/claim_procedure' --ADLS
 );
 
 

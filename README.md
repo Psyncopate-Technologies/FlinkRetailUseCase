@@ -515,8 +515,8 @@ http://localhost:8866
 ./undeploy-flink-job.sh 
 
 
-Run Flink SQL Jobs using CP Flink Operator:
------
+# Run Flink SQL Jobs using CP Flink Operator through Table API:
+
 Ensure to have your sql files for your job placed under
 /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-sql-runner/sql-scripts
 
@@ -526,5 +526,36 @@ docker build . -t flink-sql-runner:latest
 
 Create a K8s Flink Deployment CR under '/Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/flink-sql-jobs'
 
+Ensure to replace the value of <AZ STORAGE_ACCOUNT ACCESS KEY> if you choose to use abfs filesystem.
+
+Navigate to cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/flink-sql-jobs/molina_deployments/deploy_ingestion_jobs.sh
+
+Run the commands one after the other.
+
+If you have a new CR that needs to be submitted, add it to the sh file and run them as well.
+
 cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/flink-sql-jobs
 kubectl apply -f <CR_name>.yaml
+
+To use ABFS, ensure to create a config map holding hadoop configurations.
+----
+cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-sql-runner/configs
+kubectl create configmap core-site-config --from-file=core-site.xml
+
+The configmap name created here should be provided in the CR.yaml file under the property - 'kubernetes.hadoop.conf.config-map.name'
+
+
+Flink SQL with Interactive Shell using CP Flink:
+-----
+./sql-client.sh -j ../usrlib/delta-flink-3.2.1.jar -j ../usrlib/delta-standalone_2.12-3.2.1.jar -j ../usrlib/flink-csv-1.19.0.jar -j ../usrlib/flink-parquet-1.19.0.jar -j ../opt/flink-azure-fs-hadoop-1.19.1.jar -j ../usrlib/delta-storage-3.2.1.jar
+
+----------
+./sql-client.sh -l ../usrlib -j ../opt/flink-azure-fs-hadoop-1.19.1.jar  - Use this if you want to spin sql cli shell in embedded mode (a new jobmanager will be spun)
+
+----------
+./sql-gateway.sh start -Dsql-gateway.endpoint.rest.address=localhost (use this if you want to launch the cli connecting to a running job manager)
+curl http://localhost:8083/v1/info
+
+./sql-client.sh gateway --endpoint localhost:8083
+
+

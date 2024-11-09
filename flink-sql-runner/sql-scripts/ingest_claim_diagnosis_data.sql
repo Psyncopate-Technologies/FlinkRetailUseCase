@@ -24,7 +24,8 @@ CREATE TABLE claim_diagnosis (
 ) WITH (
   'connector' = 'filesystem',
   'source.monitor-interval' = '5',
-  'path' = 'file:///inputFiles/claim_diagnosis',
+  --'path' = 'file:///inputFiles/claim_diagnosis', --ADLS
+  'path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/inputFiles/claim_diagnosis', --ADLS
   'format' = 'csv'
 );
 
@@ -41,7 +42,9 @@ CREATE TABLE claim_diagnosis_delta_table (
 )
 WITH (
     'connector' = 'delta',
-    'table-path' = 'file:///mount/claim_diagnosis_delta_table'
+    --'table-path' = 'file:///mount/claim_diagnosis_delta_table' --ADLS
+    'table-path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/claim_diagnosis' --ADLS
+    --'table-path' = 'wasb://molina@molinahealthcareusecase.blob.core.windows.net/claim_diagnosis'
 );
 
 

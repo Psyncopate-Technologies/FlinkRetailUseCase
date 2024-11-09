@@ -25,7 +25,8 @@ CREATE TABLE claim_provider (
 ) WITH (
   'connector' = 'filesystem',
   'source.monitor-interval' = '5',
-  'path' = 'file:///inputFiles/claim_provider',
+  --'path' = 'file:///inputFiles/claim_provider',
+  'path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/inputFiles/claim_provider', --ADLS
   'format' = 'csv'
 );
 
@@ -40,7 +41,8 @@ CREATE TABLE claim_provider_delta_table (
   event_time TIMESTAMP
 )WITH (
     'connector' = 'delta',
-    'table-path' = 'file:///mount/claim_provider_delta_table'
+    --'table-path' = 'file:///mount/claim_provider_delta_table'
+    'table-path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/claim_provider' --ADLS
 );
 
 

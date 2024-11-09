@@ -25,10 +25,15 @@ spec:
   flinkVersion: v1_19
   flinkConfiguration:
     taskmanager.numberOfTaskSlots: "1"
+    fs.azure.account.key.molinahealthcareusecase.dfs.core.windows.net: <AZ STORAGE_ACCOUNT ACCESS KEY>
     classloader.resolve-order: "parent-first"
     state.backend: rocksdb
-    state.savepoints.dir: file:///mount/savepoints
-    state.checkpoints.dir: file:///mount/checkpoints
+    kubernetes.decorator.hadoop-conf-mount.enabled: 'true'
+    kubernetes.hadoop.conf.config-map.name: core-site-config
+    #state.savepoints.dir: file:///mount/savepoints
+    #state.checkpoints.dir: file:///mount/checkpoints
+    state.savepoints.dir: abfss://molina@molinahealthcareusecase.dfs.core.windows.net/savepoints
+    state.checkpoints.dir: abfss://molina@molinahealthcareusecase.dfs.core.windows.net/checkpoints
   serviceAccount: flink
   jobManager:
     resource:
@@ -39,8 +44,8 @@ spec:
         containers:
         - name: flink-main-container
           env:
-            - name: ENABLE_BUILT_IN_PLUGINS
-              value: flink-azure-fs-hadoop-1.19.1.jar
+            #- name: ENABLE_BUILT_IN_PLUGINS
+            #  value: flink-azure-fs-hadoop-1.19.1.jar
           volumeMounts:
           - mountPath: /mount
             name: flink-persistent-storage
@@ -62,8 +67,8 @@ spec:
         containers:
         - name: flink-main-container
           env:
-            - name: ENABLE_BUILT_IN_PLUGINS
-              value: flink-azure-fs-hadoop-1.19.1.jar
+            #- name: ENABLE_BUILT_IN_PLUGINS
+            #  value: flink-azure-fs-hadoop-1.19.1.jar
           volumeMounts:
           - mountPath: /mount
             name: flink-persistent-storage
