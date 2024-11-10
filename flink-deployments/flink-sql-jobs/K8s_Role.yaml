@@ -1,0 +1,32 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  annotations:
+    helm.sh/resource-policy: keep
+    meta.helm.sh/release-name: cp-flink-kubernetes-operator
+    meta.helm.sh/release-namespace: default
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: flink-kubernetes-operator
+    app.kubernetes.io/version: 1.8.0-cp1
+    helm.sh/chart: flink-kubernetes-operator-1.80.1
+  name: flink
+  namespace: default
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - configmaps
+  verbs:
+  - '*'
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - deployments/finalizers
+  verbs:
+  - '*'
+- apiGroups: [""]
+  resources: ["services"]  
+  verbs: ["get", "list", "watch"]

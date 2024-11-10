@@ -1,0 +1,111 @@
+################################################################################
+#  Licensed to the Apache Software Foundation (ASF) under one
+#  or more contributor license agreements.  See the NOTICE file
+#  distributed with this work for additional information
+#  regarding copyright ownership.  The ASF licenses this file
+#  to you under the Apache License, Version 2.0 (the
+#  "License"); you may not use this file except in compliance
+#  with the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
+apiVersion: flink.apache.org/v1beta1
+kind: FlinkDeployment
+metadata:
+  name: flink-cluster-session-mode
+spec:
+  image: flink-sql-runner:latest
+  flinkVersion: v1_19
+  flinkConfiguration:
+    #ENABLE_BUILT_IN_PLUGINS: flink-azure-fs-hadoop-1.19.1.jar
+    #flink.hadoop.fs.azure.account.auth.type.molinahealthcareusecase.dfs.core.windows.net: SharedKey
+    fs.azure.account.key.molinahealthcareusecase.dfs.core.windows.net: <AZ STORAGE_ACCOUNT ACCESS KEY>
+    taskmanager.numberOfTaskSlots: "1"
+    classloader.resolve-order: "parent-first"
+    state.backend: rocksdb
+    #state.savepoints.dir: file:///mount/savepoints
+    #state.checkpoints.dir: file:///mount/checkpoints
+    kubernetes.decorator.hadoop-conf-mount.enabled: 'true'
+    kubernetes.hadoop.conf.config-map.name: core-site-config
+    #HADOOP_CONF_DIR: /opt/flink/usrlib/configs
+    #HADOOP_CLASSPATH: /etc/hadoop
+    state.savepoints.dir: abfss://molina@molinahealthcareusecase.dfs.core.windows.net/savepoints
+    state.checkpoints.dir: abfss://molina@molinahealthcareusecase.dfs.core.windows.net/checkpoints
+  serviceAccount: flink
+  jobManager:
+    resource:
+      memory: "2048m"
+      cpu: 1
+    podTemplate:
+      spec:
+        containers:
+        - name: flink-main-container
+          env:
+            #- name: ENABLE_BUILT_IN_PLUGINS
+            #  value: flink-azure-fs-hadoop-1.19.1.jar
+            #- name: HADOOP_OPTIONAL_TOOLS
+            #  value: hadoop-azure
+            #- name: HADOOP_CONF_DIR
+            #  value: /opt/flink/conf
+            #- name: HADOOP_CLASSPATH
+            #  value: /etc/hadoop
+          volumeMounts:
+          - mountPath: /mount
+            name: flink-persistent-storage
+          - mountPath: /inputFiles/claim_diagnosis
+            name: flink-process-claim-files
+          #- name: core-site-config
+          #  mountPath: /opt/flink/conf/core-site.xml
+          #  subPath: core-site.xml
+        volumes:
+        - name: flink-persistent-storage
+          persistentVolumeClaim:
+            claimName: flink-pvc
+        - name: flink-process-claim-files
+          persistentVolumeClaim:
+            claimName: flink-pvc-claim-diagnosis-rawfiles
+        #- name: core-site-config
+        #  configMap:
+        #    name: core-site-config
+  taskManager:
+    resource:
+      memory: "2048m"
+      cpu: 1
+    podTemplate:
+      spec:
+        containers:
+        - name: flink-main-container
+          env:
+            #- name: ENABLE_BUILT_IN_PLUGINS
+            #  value: flink-azure-fs-hadoop-1.19.1.jar
+            #- name: HADOOP_OPTIONAL_TOOLS
+            #  value: hadoop-azure
+            #- name: HADOOP_CONF_DIR
+            #  value: /opt/flink/conf
+            #- name: HADOOP_CLASSPATH
+            #  value: "/etc/hadoop"
+          volumeMounts:
+          - mountPath: /mount
+            name: flink-persistent-storage
+          - mountPath: /inputFiles/claim_diagnosis
+            name: flink-process-claim-files
+          #- name: core-site-config
+          #  mountPath: /opt/flink/conf/core-site.xml
+          #  subPath: core-site.xml
+        volumes:
+        - name: flink-persistent-storage
+          persistentVolumeClaim:
+            claimName: flink-pvc
+        - name: flink-process-claim-files
+          persistentVolumeClaim:
+            claimName: flink-pvc-claim-diagnosis-rawfiles
+        #- name: core-site-config
+        #  configMap:
+        #    name: core-site-config

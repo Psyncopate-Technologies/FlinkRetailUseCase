@@ -549,6 +549,8 @@ Flink SQL with Interactive Shell using CP Flink:
 -----
 ./sql-client.sh -j ../usrlib/delta-flink-3.2.1.jar -j ../usrlib/delta-standalone_2.12-3.2.1.jar -j ../usrlib/flink-csv-1.19.0.jar -j ../usrlib/flink-parquet-1.19.0.jar -j ../opt/flink-azure-fs-hadoop-1.19.1.jar -j ../usrlib/delta-storage-3.2.1.jar
 
+./sql-client.sh -j ../usrlib/sql-runner.jar -j ../lib/flink-azure-fs-hadoop-1.19.1.jar -j ../usrlib/hadoop-azure-datalake-3.3.2.jar -j ../usrlib/hadoop-azure-3.3.2.jar
+
 ----------
 ./sql-client.sh -l ../usrlib -j ../opt/flink-azure-fs-hadoop-1.19.1.jar  - Use this if you want to spin sql cli shell in embedded mode (a new jobmanager will be spun)
 
@@ -557,5 +559,72 @@ Flink SQL with Interactive Shell using CP Flink:
 curl http://localhost:8083/v1/info
 
 ./sql-client.sh gateway --endpoint localhost:8083
+
+# FINAL Notes for SQL:
+----
+1. Start flink cluster in Session mode
+      * Navigate to cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/flink-sql-jobs/flink_cluster_session_mode.yaml
+      * kubectl apply -f flink_cluster_session_mode.yaml
+
+   This would start the flink cluster in session mode. 
+   kubectl get pods - This will have just the JobManager
+
+2. Provide additional K8s Rolebinding to the service account (created by CP Flink K8s Operator)
+      * cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/flink-sql-jobs
+      * kubectl apply -f K8s_Role.yaml
+
+3. (a) Use Flink SQL CLI to submit jobs - embedded mode
+      * Login to the Pod (kubeclt exec -it <jobmanager pod> bash)
+      * cd /opt/flink/bin
+      * ./sql-client.sh -j ../usrlib/sql-runner.jar
+
+    This launches the SQL CLI Shell through which jobs can be submitted.
+    Run the desired queries.(from cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-sql-runner/sql-scripts)
+
+3. (b)  Use Flink SQL CLI to submit jobs - gateway mode
+      * Login to the Pod (kubeclt exec -it <jobmanager pod> bash)
+      * cd /opt/flink/bin
+      * ./sql-gateway.sh start -Dsql-gateway.endpoint.rest.address=localhost
+      * cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/flink-sql-jobs
+      * kubectl apply -f sqlgateway_svc.yaml
+      * kubectl port-forward svc/"$SERVICE_NAME" 8083
+    
+    From your local machine, you need to have flink distribution downloaded and unpacked.
+      * Navigate to bin/ directory
+      * ./sql-client.sh gateway --endpoint localhost:8083
+    
+    This launches the SQL CLI Shell through which jobs can be submitted.
+    Run the desired queries.(from cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-sql-runner/sql-scripts) -- This is not Tested yet (may require some dependencies to be loaded in classpath)
+
+3. (c)  Use Flink REST API to submit jobs
+      * Login to the Pod (kubeclt exec -it <jobmanager pod> bash)
+      * cd /opt/flink/bin
+      * ./sql-gateway.sh start -Dsql-gateway.endpoint.rest.address=localhost
+      * cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/flink-sql-jobs
+      * kubectl apply -f sqlgateway_svc.yaml
+      * kubectl port-forward svc/"$SERVICE_NAME" 8083
+
+    From your local machine, launch postman
+      * Query 1 - Create a session
+            curl --location 'http://localhost:8083/sessions' \
+                  --header 'Content-Type: application/json' \
+                  --data '{
+                      "properties": {
+                          "execution.runtime-mode": "streaming"
+                      }
+                  }'
+      * Query 2 - Check Session handle details
+            curl --location 'http://localhost:8083/sessions/<Session handle ID from pervious response>'
+
+      * Query 3 - Submit SQLs
+            curl --location 'http://localhost:8083/sessions/d713c6b5-207f-4d45-93a0-706d6b975c59/statements' \
+                --header 'Content-Type: application/json' \
+                --data '{
+                    "statement": "SHOW CATALOGS;"
+                }'
+      * Query 4 - View Response
+            curl --location 'http://localhost:8083/sessions/d713c6b5-207f-4d45-93a0-706d6b975c59/operations/b8e3d81e-975b-4c8c-9026-d72bb715f56f/result/0?rowFormat=JSON'
+    
+
 
 
