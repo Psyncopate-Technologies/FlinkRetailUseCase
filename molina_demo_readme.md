@@ -1,3 +1,12 @@
+Overview
+========
+- [Setup Flink Cluster in Session Mode](#Setup-Flink-Cluster-in-Session-Mode)
+- [Additional K8s Roles for Service Account](#Additional-K8s-Roles-for-Service-Account)
+- [Launch Flink SQL CLI in Embedded mode](#Launch-Flink-SQL-CLI-in-Embedded-mode)
+- [Submit Flink Jobs](#Submit-Flink-Jobs)
+
+    
+
 # Setup Flink Cluster in Session Mode
 ### 1. Clone the Repository
 
@@ -49,7 +58,7 @@ kubectl apply -f K8s_Role.yaml
 kubectl get Roles
 ```
 
-# Launch FLINK SQL CLI in Embedded mode
+# Launch Flink SQL CLI in Embedded mode
 
 Launch the Flink SQL CLI shell - an interactive way of submitting the Jobs
 
