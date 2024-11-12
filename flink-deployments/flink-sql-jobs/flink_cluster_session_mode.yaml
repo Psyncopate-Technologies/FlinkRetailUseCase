@@ -28,7 +28,7 @@ spec:
     #flink.hadoop.fs.azure.account.auth.type.molinahealthcareusecase.dfs.core.windows.net: SharedKey
     fs.azure.account.key.molinahealthcareusecase.dfs.core.windows.net: <AZ STORAGE_ACCOUNT ACCESS KEY>
     taskmanager.numberOfTaskSlots: "1"
-    #classloader.resolve-order: "parent-first"
+    classloader.resolve-order: "parent-first"
     state.backend: rocksdb
     #state.savepoints.dir: file:///mount/savepoints
     #state.checkpoints.dir: file:///mount/checkpoints
