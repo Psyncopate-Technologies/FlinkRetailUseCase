@@ -2,8 +2,8 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: flink-cluster-session-mode
-  name: flink-cluster-session-mode-sqlgateway-rest
+    app: flink-cluster-session-gateway
+  name: flink-cluster-session-gateway-sqlgateway-rest
   namespace: default
 spec:
   internalTrafficPolicy: Cluster
@@ -16,7 +16,7 @@ spec:
     protocol: TCP
     targetPort: 8083
   selector:
-    app: flink-cluster-session-mode
+    app: flink-cluster-session-gateway
     component: jobmanager
     type: flink-native-kubernetes
   sessionAffinity: None

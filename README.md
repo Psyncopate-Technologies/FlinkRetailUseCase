@@ -515,7 +515,7 @@ http://localhost:8866
 ./undeploy-flink-job.sh 
 
 
-# Run Flink SQL Jobs using CP Flink Operator through Table API:
+# Run Flink SQL Jobs using CP Flink Operator through Table API - Application Mode of Deployment:
 
 Ensure to have your sql files for your job placed under
 /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-sql-runner/sql-scripts
@@ -525,14 +525,15 @@ mvn clean package
 docker build . -t flink-sql-runner:latest
 
 Create a K8s Flink Deployment CR under '/Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/flink-sql-jobs'
+ex: ingest_claim_diagnosis_data.yaml
 
-Ensure to replace the value of <AZ STORAGE_ACCOUNT ACCESS KEY> if you choose to use abfs filesystem.
+Ensure to replace the value of <AZ STORAGE_ACCOUNT ACCESS KEY> if you choose to use abfs filesystem (for ADLS integration).
 
 Navigate to cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/flink-sql-jobs/molina_deployments/deploy_ingestion_jobs.sh
 
 Run the commands one after the other.
 
-If you have a new CR that needs to be submitted, add it to the sh file and run them as well.
+If you have a new CR that needs to be submitted, add it to  deploy_ingestion_jobs.sh file and run them as well.
 
 cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/flink-sql-jobs
 kubectl apply -f <CR_name>.yaml
@@ -545,7 +546,7 @@ kubectl create configmap core-site-config --from-file=core-site.xml
 The configmap name created here should be provided in the CR.yaml file under the property - 'kubernetes.hadoop.conf.config-map.name'
 
 
-Flink SQL with Interactive Shell using CP Flink:
+Interactive Flink SQL CLI Shell using CP Flink - Try out commands:
 -----
 ./sql-client.sh -j ../usrlib/delta-flink-3.2.1.jar -j ../usrlib/delta-standalone_2.12-3.2.1.jar -j ../usrlib/flink-csv-1.19.0.jar -j ../usrlib/flink-parquet-1.19.0.jar -j ../opt/flink-azure-fs-hadoop-1.19.1.jar -j ../usrlib/delta-storage-3.2.1.jar
 
@@ -561,7 +562,13 @@ curl http://localhost:8083/v1/info
 ./sql-client.sh gateway --endpoint localhost:8083
 
 # FINAL Notes for SQL:
+
+# Run Flink SQL Jobs using CP Flink Operator through Interactive SQL CLI Shell- Session Mode of Deployment:
 ----
+0. Create a COnfig Map holding hadoop configs for the ADLS filesystem
+    cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-sql-runner/configs
+    kubectl create configmap core-site-config --from-file=core-site.xml
+
 1. Start flink cluster in Session mode
       * Navigate to cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/flink-sql-jobs/flink_cluster_session_mode.yaml
       * kubectl apply -f flink_cluster_session_mode.yaml
@@ -574,14 +581,14 @@ curl http://localhost:8083/v1/info
       * kubectl apply -f K8s_Role.yaml
 
 3. (a) Use Flink SQL CLI to submit jobs - embedded mode
-      * Login to the Pod (kubeclt exec -it <jobmanager pod> bash)
+      * Login to the Flink Cluster Job manager Pod (kubeclt exec -it <jobmanager pod> bash)
       * cd /opt/flink/bin
       * ./sql-client.sh -j ../usrlib/sql-runner.jar
 
     This launches the SQL CLI Shell through which jobs can be submitted.
     Run the desired queries.(from cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-sql-runner/sql-scripts)
 
-3. (b)  Use Flink SQL CLI to submit jobs - gateway mode
+3. (b)  Use Flink SQL CLI to submit jobs - gateway mode - yet to be tested
       * Login to the Pod (kubeclt exec -it <jobmanager pod> bash)
       * cd /opt/flink/bin
       * ./sql-gateway.sh start -Dsql-gateway.endpoint.rest.address=localhost
@@ -596,7 +603,7 @@ curl http://localhost:8083/v1/info
     This launches the SQL CLI Shell through which jobs can be submitted.
     Run the desired queries.(from cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-sql-runner/sql-scripts) -- This is not Tested yet (may require some dependencies to be loaded in classpath)
 
-3. (c)  Use Flink REST API to submit jobs
+3. (c)  Use Flink REST API to submit jobs - yet to be tested
       * Login to the Pod (kubeclt exec -it <jobmanager pod> bash)
       * cd /opt/flink/bin
       * ./sql-gateway.sh start -Dsql-gateway.endpoint.rest.address=localhost
@@ -626,5 +633,74 @@ curl http://localhost:8083/v1/info
             curl --location 'http://localhost:8083/sessions/d713c6b5-207f-4d45-93a0-706d6b975c59/operations/b8e3d81e-975b-4c8c-9026-d72bb715f56f/result/0?rowFormat=JSON'
     
 
+# Refined1 - Run Flink SQL Jobs using CP Flink Operator through Interactive SQL CLI Shell- Session Mode with Embedded CLI shell:
+------
+1. Prepare the SQL CLI Shell initialization scripts in a SQL file and place it under
+    /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-sql-runner/sql-scripts
+    ex: initialize-data-ingestion-to-adls.sql
+2. cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-sql-runner
+   mvn clean package
+   docker build . -t flink-sql-runner:latest
+3. Run Flink Cluster in Session Mode using CP FLink Operator
+      * Navigate to cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/flink-sql-jobs/flink_cluster_session_mode.yaml
+      * kubectl apply -f flink_cluster_session_mode.yaml
+   This would start the flink cluster in session mode. 
+   kubectl get pods - This will have just the JobManager
 
+4. Provide additional K8s Rolebinding to the service account (created by CP Flink K8s Operator)
+      * cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/flink-sql-jobs
+      * kubectl apply -f K8s_Role.yaml
+
+5. Use Flink SQL CLI to submit jobs - embedded mode
+      * Login to the Flink Cluster Job manager Pod (kubeclt exec -it <jobmanager pod> bash)
+      * cd /opt/flink/bin
+      * ./sql-client.sh -j ../usrlib/sql-runner.jar -i ../usrlib/sql-scripts/initialize-data-ingestion-to-adls.sql
+
+    This launches the SQL CLI Shell through which jobs can be submitted.
+
+6. Now an interactive Shell prompt is opened from where you can submit INSERT/SELECT Queries which will spin pu a taskamanger
+    ex: INSERT INTO raw_claim_diagnosis_delta_table SELECT claim_id, member_id, diagnosis_code, diagnosis_description, diagnosis_date, lab_results, event_time FROM input_claim_diagnosis;
+
+
+# Refined1 - Run Flink SQL Jobs Remotely through Interactive SQL CLI Shell- Session Mode with Gateway CLI shell:
+------
+1. Prepare the SQL CLI Shell initialization scripts in a SQL file and place it under
+    /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-sql-cli
+    ex: initialize-data-ingestion-to-adls.sql
+
+2. Ensure to have all job specific dependencies in a directory with in /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-sql-cli
+
+3. Build the image
+    cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-sql-cli
+    docker build . -t flink-sql-custom-cli:latest
+
+4. Prepare K8s manifest to deploy the image  - this starts up Flink Cluster in Session mode
+    cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/flink-sql-jobs
+    ex: flink_cluster_session_gateway.yaml
+
+5. Deploy the FLink CLuster
+    cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/flink-sql-jobs
+    kubectl apply -f flink_cluster_session_gateway.yaml
+
+6. Deploy the Flink rest service for the SQL gateway of Flink cluster
+    cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/flink-sql-jobs
+    kubectl apply -f sqlgateway_svc_gateway.yaml (Change the labels and selector if required)
+
+7. Provide additional K8s Rolebinding to the service account (created by CP Flink K8s Operator)
+      * cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/flink-sql-jobs
+      * kubectl apply -f K8s_Role.yaml
+
+5. Use Flink SQL CLI to submit jobs - gateway mode
+    Login to the Pod (kubeclt exec -it <jobmanager pod> bash)
+      * cd /opt/flink/bin
+      * ./sql-gateway.sh start -Dsql-gateway.endpoint.rest.address=localhost
+      * cd /Users/sasidarendinakaran/Documents/Demos/FlinkRetailUseCase/flink-deployments/flink-sql-jobs
+      * kubectl port-forward svc/"$SERVICE_NAME" 8083 - Pick the service name from Step #6
+
+9. From local, where you have the local distribution of flink available, ensure to have all the required libs in lib folder.
+    From the bin dir, launch the SQL CLI through the gateway
+        ./sql-client.sh gateway --endpoint localhost:8083 -i ../initialize-data-ingestion-to-adls.sql (this is the init sql scripts prepared in step #1)
+
+10. Now an interactive Shell prompt is opened from where you can submit INSERT/SELECT Queries which will spin pu a taskamanger
+    ex: INSERT INTO raw_claim_diagnosis_delta_table SELECT claim_id, member_id, diagnosis_code, diagnosis_description, diagnosis_date, lab_results, event_time FROM input_claim_diagnosis;
 

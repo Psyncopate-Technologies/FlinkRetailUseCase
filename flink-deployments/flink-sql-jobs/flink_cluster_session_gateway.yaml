@@ -19,16 +19,16 @@
 apiVersion: flink.apache.org/v1beta1
 kind: FlinkDeployment
 metadata:
-  name: flink-cluster-session-mode
+  name: flink-cluster-session-gateway
 spec:
-  image: flink-sql-runner:latest
+  image: flink-sql-custom-cli:latest
   flinkVersion: v1_19
   flinkConfiguration:
     #ENABLE_BUILT_IN_PLUGINS: flink-azure-fs-hadoop-1.19.1.jar
     #flink.hadoop.fs.azure.account.auth.type.molinahealthcareusecase.dfs.core.windows.net: SharedKey
     fs.azure.account.key.molinahealthcareusecase.dfs.core.windows.net: <AZ STORAGE_ACCOUNT ACCESS KEY>
     taskmanager.numberOfTaskSlots: "1"
-    #classloader.resolve-order: "parent-first"
+    classloader.resolve-order: "parent-first"
     state.backend: rocksdb
     #state.savepoints.dir: file:///mount/savepoints
     #state.checkpoints.dir: file:///mount/checkpoints
