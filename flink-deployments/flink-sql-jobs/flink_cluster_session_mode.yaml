@@ -56,21 +56,21 @@ spec:
             #  value: /opt/flink/conf
             #- name: HADOOP_CLASSPATH
             #  value: /etc/hadoop
-          volumeMounts:
-          - mountPath: /mount
-            name: flink-persistent-storage
-          - mountPath: /inputFiles/claim_diagnosis
-            name: flink-process-claim-files
+          #volumeMounts:
+          #- mountPath: /mount
+          #  name: flink-persistent-storage
+          #- mountPath: /inputFiles/claim_diagnosis
+          #  name: flink-process-claim-files
           #- name: core-site-config
           #  mountPath: /opt/flink/conf/core-site.xml
           #  subPath: core-site.xml
-        volumes:
-        - name: flink-persistent-storage
-          persistentVolumeClaim:
-            claimName: flink-pvc
-        - name: flink-process-claim-files
-          persistentVolumeClaim:
-            claimName: flink-pvc-claim-diagnosis-rawfiles
+        #volumes:
+        #- name: flink-persistent-storage
+        #  persistentVolumeClaim:
+        #    claimName: flink-pvc
+        #- name: flink-process-claim-files
+        #  persistentVolumeClaim:
+        #    claimName: flink-pvc-claim-diagnosis-rawfiles
         #- name: core-site-config
         #  configMap:
         #    name: core-site-config
@@ -91,21 +91,21 @@ spec:
             #  value: /opt/flink/conf
             #- name: HADOOP_CLASSPATH
             #  value: "/etc/hadoop"
-          volumeMounts:
-          - mountPath: /mount
-            name: flink-persistent-storage
-          - mountPath: /inputFiles/claim_diagnosis
-            name: flink-process-claim-files
+          #volumeMounts:
+          #- mountPath: /mount
+          #  name: flink-persistent-storage
+          #- mountPath: /inputFiles/claim_diagnosis
+          #  name: flink-process-claim-files
           #- name: core-site-config
           #  mountPath: /opt/flink/conf/core-site.xml
           #  subPath: core-site.xml
-        volumes:
-        - name: flink-persistent-storage
-          persistentVolumeClaim:
-            claimName: flink-pvc
-        - name: flink-process-claim-files
-          persistentVolumeClaim:
-            claimName: flink-pvc-claim-diagnosis-rawfiles
+        #volumes:
+        #- name: flink-persistent-storage
+        #  persistentVolumeClaim:
+        #    claimName: flink-pvc
+        #- name: flink-process-claim-files
+        #  persistentVolumeClaim:
+        #    claimName: flink-pvc-claim-diagnosis-rawfiles
         #- name: core-site-config
         #  configMap:
         #    name: core-site-config

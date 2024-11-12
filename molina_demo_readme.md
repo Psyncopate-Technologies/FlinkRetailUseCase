@@ -2,6 +2,8 @@ Overview
 ========
 - [Setup Flink Cluster in Session Mode](#Setup-Flink-Cluster-in-Session-Mode)
 - [Additional K8s Roles for Service Account](#Additional-K8s-Roles-for-Service-Account)
+- [Replcae Placeholder values](#Replcae-Placeholder-values)
+- [Provision Config Map to hold Hadoop Configs](#Provision-Config-Map-to-hold-Hadoop-Configs)
 - [Launch Flink SQL CLI in Embedded mode](#Launch-Flink-SQL-CLI-in-Embedded-mode)
 - [Submit Flink Jobs](#Submit-Flink-Jobs)
 
@@ -57,6 +59,25 @@ cd <Cloned_Repo_Dir>/flink-deployments/flink-sql-jobs
 kubectl apply -f K8s_Role.yaml
 kubectl get Roles
 ```
+
+# Replcae Placeholder values
+
+You need to replace certain placeholder values for the integrations to work
+Filename | Path | Placeholder | Purpose
+---------|------|-------------|--------
+core-site.xml | <Cloned_Repo_Dir>/flink-sql-runner/configs | {AZ STORAGE_ACCOUNT ACCESS KEY} | The Acceee Key for Azure Storage Accounts for ADLS Integration
+flink_cluster_session_mode.yaml | <Cloned_Repo_Dir>/flink-deployments/flink-sql-jobs | <AZ STORAGE_ACCOUNT ACCESS KEY> | The Acceee Key for Azure Storage Accounts for ADLS Integration
+
+
+# Provision Config Map to hold Hadoop Configs
+
+This is required for ADLS intergration where the Checkpoints/Savepoints and Delta Tables are going to reside
+
+```bash
+cd <Cloned_Repo_Dir>/flink-sql-runner/configs
+kubectl create configmap core-site-config --from-file=core-site.xml
+```
+
 
 # Launch Flink SQL CLI in Embedded mode
 
