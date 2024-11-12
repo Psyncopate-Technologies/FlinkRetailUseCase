@@ -65,8 +65,8 @@ kubectl get Roles
 You need to replace certain placeholder values for the integrations to work
 Filename | Path | Placeholder | Purpose
 ---------|------|-------------|--------
-core-site.xml | <Cloned_Repo_Dir>/flink-sql-runner/configs | {AZ STORAGE_ACCOUNT ACCESS KEY} | The Acceee Key for Azure Storage Accounts for ADLS Integration
-flink_cluster_session_mode.yaml | <Cloned_Repo_Dir>/flink-deployments/flink-sql-jobs | <AZ STORAGE_ACCOUNT ACCESS KEY> | The Acceee Key for Azure Storage Accounts for ADLS Integration
+core-site.xml | <Cloned_Repo_Dir>/flink-sql-runner/configs | {AZ STORAGE_ACCOUNT ACCESS KEY} | The Access Key for Azure Storage Accounts for ADLS Integration
+flink_cluster_session_mode.yaml | <Cloned_Repo_Dir>/flink-deployments/flink-sql-jobs | {AZ STORAGE_ACCOUNT ACCESS KEY} | The Access Key for Azure Storage Accounts for ADLS Integration
 
 
 # Provision Config Map to hold Hadoop Configs
