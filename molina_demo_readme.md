@@ -38,8 +38,20 @@ Build the repo using Maven and get the Docker image ready.
 ```bash
 cd <Cloned_Repo_Dir>/flink-sql-runner
 mvn clean package
+
+Build image to Local Docker repo:
 docker build . -t flink-sql-runner:latest
+
+Build image to be pushed to Dockerhub:
+docker buildx build --platform linux/amd64,linux/arm64 -t <docker hub account>/flink-sql-runner:<>tag .
 ```
+
+### 4. Push Docker image to Dockerhub
+Push the built docker image to Dockerhub (Multi-arch)
+```bash
+docker push <docker hub account>/flink-sql-runner:<>tag
+```
+
 
 # Additional K8s Roles for Service Account
 
