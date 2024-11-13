@@ -106,3 +106,24 @@ CREATE TABLE raw_claim_provider_delta_table (
     --'table-path' = 'file:///mount/claim_provider_delta_table'
     'table-path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/claim_provider' --ADLS
 );
+
+CREATE TABLE claim_full_info (
+  claim_id STRING,
+  member_id STRING,
+  diagnosis_code STRING,
+  diagnosis_description STRING,
+  diagnosis_date TIMESTAMP(3),
+  lab_results STRING,
+  procedure_code STRING,
+  procedure_description STRING,
+  procedure_date TIMESTAMP(3),
+  procedure_cost DOUBLE,
+  provider_id STRING,
+  provider_name STRING,
+  in_network STRING,
+  facility_name STRING,
+  event_time TIMESTAMP
+) WITH (
+  'connector' = 'delta',
+  'table-path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/claim_full_info_mock' --ADLS
+);

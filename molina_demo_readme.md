@@ -1,15 +1,16 @@
 Overview
 ========
-- [Setup Flink Cluster in Session Mode](#Setup-Flink-Cluster-in-Session-Mode)
+- [Pre-requisites](#Pre-requisites)
 - [Additional K8s Roles for Service Account](#Additional-K8s-Roles-for-Service-Account)
 - [Replcae Placeholder values](#Replcae-Placeholder-values)
 - [Provision Config Map to hold Hadoop Configs](#Provision-Config-Map-to-hold-Hadoop-Configs)
+- [Launch Flink Cluster in Session mode](#Launch-Flink-Cluster-in-Session-mode)
 - [Launch Flink SQL CLI in Embedded mode](#Launch-Flink-SQL-CLI-in-Embedded-mode)
 - [Submit Flink Jobs](#Submit-Flink-Jobs)
 
     
 
-# Setup Flink Cluster in Session Mode
+# Pre-requisites
 ### 1. Clone the Repository
 
 First, clone the repository where the Docker Compose file is located:
@@ -40,16 +41,6 @@ mvn clean package
 docker build . -t flink-sql-runner:latest
 ```
 
-### 4. Launch the Flink Cluster in Session mode.
-
-You need to have Kubernetes cluster running with CP Flink Operator setup (https://docs.confluent.io/platform/current/flink/get-started.html#step-1-install-af-cp-long)
-
-```bash
-cd <Cloned_Repo_Dir>/flink-deployments/flink-sql-jobs
-kubectl apply -f flink_cluster_session_mode.yaml
-kubectl get pods
-```
-
 # Additional K8s Roles for Service Account
 
 You need to provide additional roles to the K8s service account with which the CLI shell is going to get started ('flink')
@@ -78,6 +69,15 @@ cd <Cloned_Repo_Dir>/flink-sql-runner/configs
 kubectl create configmap core-site-config --from-file=core-site.xml
 ```
 
+# Launch Flink Cluster in Session mode
+
+You need to have Kubernetes cluster running with CP Flink Operator setup (https://docs.confluent.io/platform/current/flink/get-started.html#step-1-install-af-cp-long)
+
+```bash
+cd <Cloned_Repo_Dir>/flink-deployments/flink-sql-jobs
+kubectl apply -f flink_cluster_session_mode.yaml
+kubectl get pods
+```
 
 # Launch Flink SQL CLI in Embedded mode
 
