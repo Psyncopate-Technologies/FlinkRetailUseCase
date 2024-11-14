@@ -1,0 +1,55 @@
+claim_001,member_001,DG001,Appendicitis,2011-01-01 00:00:00.000,Positive
+claim_002,member_002,DG002,Cataract,2011-02-01 00:00:00.000,Positive
+claim_003,member_003,DG003,Tooth Decay,2011-03-01 00:00:00.000,Positive
+claim_004,member_004,DG004,Fracture,2011-04-01 00:00:00.000,Positive
+claim_005,member_005,DG005,Heart Attack,2011-05-01 00:00:00.000,Positive
+claim_006,member_006,DG006,Stroke,2011-06-01 00:00:00.000,Positive
+claim_007,member_007,DG007,Cancer,2011-07-01 00:00:00.000,Positive
+claim_008,member_008,DG008,Sinusitis,2011-08-01 00:00:00.000,Positive
+claim_009,member_009,DG009,Hypertension,2011-09-01 00:00:00.000,Positive
+claim_010,member_010,DG004,Fracture,2011-10-01 00:00:00.000,Positive
+claim_011,member_011,DG005,Heart Attack,2011-11-01 00:00:00.000,Positive
+claim_012,member_012,DG006,Stroke,2011-12-01 00:00:00.000,Positive
+claim_013,member_013,DG007,Cancer,2012-01-01 00:00:00.000,Positive
+claim_014,member_014,DG008,Sinusitis,2012-02-01 00:00:00.000,Positive
+claim_015,member_015,DG009,Hypertension,2012-03-01 00:00:00.000,Positive
+claim_016,member_016,DG003,Tooth Decay,2012-04-01 00:00:00.000,Positive
+claim_017,member_017,DG004,Fracture,2012-05-01 00:00:00.000,Positive
+claim_018,member_018,DG005,Heart Attack,2012-06-01 00:00:00.000,Positive
+claim_019,member_019,DG006,Stroke,2012-07-01 00:00:00.000,Positive
+claim_020,member_020,DG007,Cancer,2012-08-01 00:00:00.000,Positive
+claim_021,member_021,DG008,Sinusitis,2012-09-01 00:00:00.000,Positive
+claim_022,member_022,DG009,Hypertension,2012-10-01 00:00:00.000,Positive
+claim_023,member_023,DG003,Tooth Decay,2012-11-01 00:00:00.000,Positive
+claim_024,member_024,DG004,Fracture,2012-12-01 00:00:00.000,Positive
+claim_025,member_025,DG005,Heart Attack,2013-01-01 00:00:00.000,Positive
+claim_026,member_026,DG010,Asthma,2013-02-01 00:00:00.000,Positive
+claim_027,member_027,DG011,Anemia,2013-03-01 00:00:00.000,Negative
+claim_028,member_028,DG012,Chickenpox,2013-04-01 00:00:00.000,Positive
+claim_029,member_029,DG013,Measles,2013-05-01 00:00:00.000,Negative
+claim_030,member_030,DG014,Mumps,2013-06-01 00:00:00.000,Positive
+claim_031,member_031,DG015,Malaria,2013-07-01 00:00:00.000,Negative
+claim_032,member_032,DG016,Typhoid,2013-08-01 00:00:00.000,Positive
+claim_033,member_033,DG017,Dengue,2013-09-01 00:00:00.000,Negative
+claim_034,member_034,DG018,Cholera,2013-10-01 00:00:00.000,Positive
+claim_035,member_035,DG019,Leprosy,2013-11-01 00:00:00.000,Negative
+claim_036,member_036,DG020,Tuberculosis,2013-12-01 00:00:00.000,Positive
+claim_037,member_037,DG021,Hepatitis,2014-01-01 00:00:00.000,Negative
+claim_038,member_038,DG022,Influenza,2014-02-01 00:00:00.000,Positive
+claim_039,member_039,DG023,Pneumonia,2014-03-01 00:00:00.000,Negative
+claim_040,member_040,DG024,Polio,2014-04-01 00:00:00.000,Positive
+claim_041,member_041,DG025,Rabies,2014-05-01 00:00:00.000,Negative
+claim_042,member_042,DG026,Scabies,2014-06-01 00:00:00.000,Positive
+claim_043,member_043,DG027,Smallpox,2014-07-01 00:00:00.000,Negative
+claim_044,member_044,DG028,Tetanus,2014-08-01 00:00:00.000,Positive
+claim_045,member_045,DG029,Whooping Cough,2014-09-01 00:00:00.000,Negative
+claim_046,member_046,DG030,Zika Virus,2014-10-01 00:00:00.000,Positive
+claim_047,member_047,DG031,Ebola,2014-11-01 00:00:00.000,Negative
+claim_048,member_048,DG032,SARS,2014-12-01 00:00:00.000,Positive
+claim_049,member_049,DG033,MERS,2015-01-01 00:00:00.000,Negative
+claim_050,member_050,DG034,HIV/AIDS,2015-02-01 00:00:00.000,Positive
+claim_051,member_051,DG035,Chikungunya,2015-03-01 00:00:00.000,Negative
+claim_052,member_052,DG036,Yellow Fever,2015-04-01 00:00:00.000,Positive
+claim_053,member_053,DG037,West Nile Virus,2015-05-01 00:00:00.000,Negative
+claim_054,member_054,DG038,Avian Influenza,2015-06-01 00:00:00.000,Positive
+claim_055,member_055,DG039,Swine Flu,2015-07-01 00:00:00.000,Negative

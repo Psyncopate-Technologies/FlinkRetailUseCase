@@ -1,0 +1,55 @@
+claim_001,member_001,PRC001,Appendectomy,2011-01-01 00:00:00.000,2000.00
+claim_002,member_002,PRC002,Cataract Surgery,2011-02-01 00:00:00.000,1500.00
+claim_003,member_003,PRC003,Dental Filling,2011-03-01 00:00:00.000,3000.00
+claim_004,member_004,PRC004,Orthopedic Surgery,2011-04-01 00:00:00.000,2500.00
+claim_005,member_005,PRC005,Cardiac Surgery,2011-05-01 00:00:00.000,5000.00
+claim_006,member_006,PRC006,Stroke Treatment,2011-06-01 00:00:00.000,4000.00
+claim_007,member_007,PRC007,Chemotherapy,2011-07-01 00:00:00.000,6000.00
+claim_008,member_008,PRC008,ENT Surgery,2011-08-01 00:00:00.000,1200.00
+claim_009,member_009,PRC009,Hypertension Treatment,2011-09-01 00:00:00.000,1000.00
+claim_010,member_010,PRC004,Orthopedic Surgery,2011-10-01 00:00:00.000,2500.00
+claim_011,member_011,PRC005,Cardiac Surgery,2011-11-01 00:00:00.000,5000.00
+claim_012,member_012,PRC006,Stroke Treatment,2011-12-01 00:00:00.000,4000.00
+claim_013,member_013,PRC007,Chemotherapy,2012-01-01 00:00:00.000,6000.00
+claim_014,member_014,PRC008,ENT Surgery,2012-02-01 00:00:00.000,1200.00
+claim_015,member_015,PRC009,Hypertension Treatment,2012-03-01 00:00:00.000,1000.00
+claim_016,member_016,PRC003,Dental Filling,2012-04-01 00:00:00.000,3000.00
+claim_017,member_017,PRC004,Orthopedic Surgery,2012-05-01 00:00:00.000,2500.00
+claim_018,member_018,PRC005,Cardiac Surgery,2012-06-01 00:00:00.000,5000.00
+claim_019,member_019,PRC006,Stroke Treatment,2012-07-01 00:00:00.000,4000.00
+claim_020,member_020,PRC007,Chemotherapy,2012-08-01 00:00:00.000,6000.00
+claim_021,member_021,PRC008,ENT Surgery,2012-09-01 00:00:00.000,1200.00
+claim_022,member_022,PRC009,Hypertension Treatment,2012-10-01 00:00:00.000,1000.00
+claim_023,member_023,PRC003,Dental Filling,2012-11-01 00:00:00.000,3000.00
+claim_024,member_024,PRC004,Orthopedic Surgery,2012-12-01 00:00:00.000,2500.00
+claim_025,member_025,PRC005,Cardiac Surgery,2013-01-01 00:00:00.000,5000.00
+claim_026,member_026,PRC010,Asthma Treatment,2013-02-01 00:00:00.000,2000.00
+claim_027,member_027,PRC011,Blood Transfusion,2013-03-01 00:00:00.000,1500.00
+claim_028,member_028,PRC012,Chickenpox Vaccination,2013-04-01 00:00:00.000,3000.00
+claim_029,member_029,PRC013,Measles Vaccination,2013-05-01 00:00:00.000,2500.00
+claim_030,member_030,PRC014,Mumps Vaccination,2013-06-01 00:00:00.000,5000.00
+claim_031,member_031,PRC015,Malaria Treatment,2013-07-01 00:00:00.000,4000.00
+claim_032,member_032,PRC016,Typhoid Treatment,2013-08-01 00:00:00.000,6000.00
+claim_033,member_033,PRC017,Dengue Treatment,2013-09-01 00:00:00.000,1200.00
+claim_034,member_034,PRC018,Cholera Treatment,2013-10-01 00:00:00.000,1000.00
+claim_035,member_035,PRC019,Leprosy Treatment,2013-11-01 00:00:00.000,2500.00
+claim_036,member_036,PRC020,Tuberculosis Treatment,2013-12-01 00:00:00.000,5000.00
+claim_037,member_037,PRC021,Hepatitis Treatment,2014-01-01 00:00:00.000,4000.00
+claim_038,member_038,PRC022,Influenza Treatment,2014-02-01 00:00:00.000,6000.00
+claim_039,member_039,PRC023,Pneumonia Treatment,2014-03-01 00:00:00.000,1200.00
+claim_040,member_040,PRC024,Polio Vaccination,2014-04-01 00:00:00.000,1000.00
+claim_041,member_041,PRC025,Rabies Vaccination,2014-05-01 00:00:00.000,2500.00
+claim_042,member_042,PRC026,Scabies Treatment,2014-06-01 00:00:00.000,5000.00
+claim_043,member_043,PRC027,Smallpox Vaccination,2014-07-01 00:00:00.000,4000.00
+claim_044,member_044,PRC028,Tetanus Vaccination,2014-08-01 00:00:00.000,6000.00
+claim_045,member_045,PRC029,Whooping Cough Vaccination,2014-09-01 00:00:00.000,1200.00
+claim_046,member_046,PRC030,Zika Virus Treatment,2014-10-01 00:00:00.000,1000.00
+claim_047,member_047,PRC031,Ebola Treatment,2014-11-01 00:00:00.000,2500.00
+claim_048,member_048,PRC032,SARS Treatment,2014-12-01 00:00:00.000,5000.00
+claim_049,member_049,PRC033,MERS Treatment,2015-01-01 00:00:00.000,4000.00
+claim_050,member_050,PRC034,HIV/AIDS Treatment,2015-02-01 00:00:00.000,6000.00
+claim_051,member_051,PRC035,Chikungunya Treatment,2015-03-01 00:00:00.000,1200.00
+claim_052,member_052,PRC036,Yellow Fever Vaccination,2015-04-01 00:00:00.000,1000.00
+claim_053,member_053,PRC037,West Nile Virus Treatment,2015-05-01 00:00:00.000,2500.00
+claim_054,member_054,PRC038,Avian Influenza Treatment,2015-06-01 00:00:00.000,5000.00
+claim_055,member_055,PRC039,Swine Flu Treatment,2015-07-01 00:00:00.000,4000.00
