@@ -31,14 +31,6 @@ JOIN claim_provider_delta_table/*+ OPTIONS('mode' = 'streaming') */ pr ON d.clai
 
 -- Create Delta tables for eligible and ineligible procedures
 
-CREATE TABLE new_eligible_procedures (
-    procedure_code STRING,
-    procedure_description STRING
-) WITH (
-    'connector' = 'filesystem',
-    'path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/inputFiles/new_eligible_procedures',
-    'format' = 'csv'
-);
 -- Insert data into new eligible procedures table
 INSERT INTO eligible_procedures VALUES
 ('PRC001', 'Appendectomy'),
@@ -52,15 +44,6 @@ INSERT INTO eligible_procedures VALUES
 ('PRC009', 'Hypertension Treatment'),
 ('PRC010', 'Asthma Treatment');
 
--- Create ineligible_procedures table using filesystem connector
-CREATE TABLE ineligible_procedures (
-    procedure_code STRING,
-    procedure_description STRING
-) WITH (
-    'connector' = 'filesystem',
-    'path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/inputFiles/ineligible_procedures',
-    'format' = 'csv'
-);
 
 -- Insert data into ineligible procedures table
 INSERT INTO ineligible_procedures VALUES
@@ -96,14 +79,7 @@ INSERT INTO ineligible_procedures VALUES
 
 
 -- Create eligible_diagnosis table
-CREATE TABLE eligible_diagnosis (
-    diagnosis_code STRING,
-    diagnosis_description STRING
-) WITH (
-    'connector' = 'filesystem',
-    'path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/inputFiles/eligible_diagnosis',
-    'format' = 'csv'
-);
+
 
 -- Insert data into eligible_diagnosis table
 INSERT INTO eligible_diagnosis VALUES
@@ -119,14 +95,7 @@ INSERT INTO eligible_diagnosis VALUES
 ('DG010', 'Asthma');
 
 -- Create ineligible_diagnosis table
-CREATE TABLE ineligible_diagnosis (
-    diagnosis_code STRING,
-    diagnosis_description STRING
-) WITH (
-    'connector' = 'filesystem',
-    'path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/inputFiles/ineligible_diagnosis',
-    'format' = 'csv'
-);
+
 
 -- Insert data into ineligible_diagnosis table
 INSERT INTO ineligible_diagnosis VALUES
@@ -163,28 +132,19 @@ INSERT INTO ineligible_diagnosis VALUES
 
 
 
+-- Insert data into procedure_thresholds table
+INSERT INTO procedure_thresholds VALUES
+('PRC001', 1000.00),
+('PRC002', 2000.00),
+('PRC003', 3500.00),
+('PRC004', 3000.00),
+('PRC005', 5500.00),
+('PRC006', 4500.00),
+('PRC007', 6500.00),
+('PRC008', 1500.00),
+('PRC009', 1200.00),
+('PRC010', 2500.00);
 
-CREATE TABLE processed_claim_full_info (
-    claim_id STRING,
-    member_id STRING,
-    diagnosis_code STRING,
-    diagnosis_description STRING,
-    diagnosis_date TIMESTAMP(3),
-    lab_results STRING,
-    procedure_code STRING,
-    procedure_description STRING,
-    procedure_date TIMESTAMP(3),
-    procedure_cost DOUBLE,
-    provider_id STRING,
-    provider_name STRING,
-    in_network STRING,
-    facility_name STRING,
-    event_time TIMESTAMP,
-    adjudicated BOOLEAN
-) WITH (
-    'connector' = 'delta',
-    'table-path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/processed_claim_full_info'
-);
 
 INSERT INTO processed_claim_full_info
 SELECT
@@ -203,41 +163,26 @@ SELECT
     c.in_network,
     c.facility_name,
     c.event_time,
-    TRUE AS adjudicated
+    CASE
+        WHEN c.procedure_cost > t.cost_threshold THEN FALSE
+        ELSE TRUE
+    END AS adjudicated
 FROM claim_full_info/*+ OPTIONS('mode' = 'streaming') */ c
-JOIN eligible_procedures e ON c.procedure_code = e.procedure_code;
+JOIN eligible_procedures e ON c.procedure_code = e.procedure_code
+JOIN eligible_diagnosis d ON c.diagnosis_code = d.diagnosis_code
+JOIN procedure_thresholds t ON c.procedure_code = t.procedure_code;
 
-CREATE TABLE new_eligible_procedures (
-    procedure_code STRING,
-    procedure_description STRING
-) WITH (
-    'connector' = 'filesystem',
-    'path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/inputFiles/new_eligible_procedures',
-    'format' = 'csv'
-);
+
+
+
+working
+
+
+
+
 
 -- Create rejected_claims_delta_table
-CREATE TABLE rejected_claims_delta_table (
-    claim_id STRING,
-    member_id STRING,
-    diagnosis_code STRING,
-    diagnosis_description STRING,
-    diagnosis_date TIMESTAMP(3),
-    lab_results STRING,
-    procedure_code STRING,
-    procedure_description STRING,
-    procedure_date TIMESTAMP(3),
-    procedure_cost DOUBLE,
-    provider_id STRING,
-    provider_name STRING,
-    in_network STRING,
-    facility_name STRING,
-    event_time TIMESTAMP,
-    adjudicated BOOLEAN
-) WITH (
-    'connector' = 'delta',
-    'table-path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/rejected_claims_delta_table'
-);
+
 
 -- Insert data into rejected_claims_delta_table for ineligible procedures
 INSERT INTO rejected_claims_delta_table
@@ -259,5 +204,44 @@ SELECT
     c.event_time,
     FALSE AS adjudicated
 FROM claim_full_info/*+ OPTIONS('mode' = 'streaming') */ c
-JOIN ineligible_procedures i ON c.procedure_code = i.procedure_code;
+JOIN ineligible_procedures i ON c.procedure_code = i.procedure_code
+JOIN ineligible_diagnosis d ON c.diagnosis_code = d.diagnosis_code;
+
+
+---WIP
+CREATE TABLE processed_claims_summary_test (
+    claim_id STRING PRIMARY KEY NOT ENFORCED,
+    total_diagnoses BIGINT,
+    total_procedures BIGINT
+) WITH (
+    'connector' = 'delta',
+    'table-path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/processed_claims_summary_test'
+);
+
+INSERT INTO processed_claims_summary_test
+SELECT
+    claim_id,
+    COUNT(DISTINCT diagnosis_code) AS total_diagnoses,
+    COUNT(DISTINCT procedure_code) AS total_procedures
+FROM processed_claim_full_info
+GROUP BY claim_id;
+
+
+CREATE TABLE rejected_claims_summary (
+    claim_id STRING,
+    total_diagnoses INT,
+    total_procedures INT
+) WITH (
+    'connector' = 'delta',
+    'table-path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/rejected_claims_summary'
+);
+
+INSERT INTO rejected_claims_summary
+SELECT
+    claim_id,
+    COUNT(DISTINCT diagnosis_code) AS total_diagnoses,
+    COUNT(DISTINCT procedure_code) AS total_procedures
+FROM rejected_claims_delta_table
+GROUP BY claim_id;
+
 

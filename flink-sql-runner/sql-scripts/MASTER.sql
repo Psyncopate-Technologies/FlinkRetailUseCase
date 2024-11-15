@@ -71,7 +71,6 @@ CREATE TABLE claim_procedure (
 );
 
 
-q
 
 
 CREATE TABLE claim_procedure_delta_table (
@@ -150,3 +149,95 @@ CREATE TABLE claim_full_info (
 
 
 
+CREATE TABLE eligible_procedures (
+    procedure_code STRING,
+    procedure_description STRING
+) WITH (
+    'connector' = 'filesystem',
+    'path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/StagingFiles/new_eligible_procedures',
+    'format' = 'csv'
+);
+
+-- Create ineligible_procedures table using filesystem connector
+CREATE TABLE ineligible_procedures (
+    procedure_code STRING,
+    procedure_description STRING
+) WITH (
+    'connector' = 'filesystem',
+    'path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/StagingFiles/ineligible_procedures',
+    'format' = 'csv'
+);
+
+CREATE TABLE eligible_diagnosis (
+    diagnosis_code STRING,
+    diagnosis_description STRING
+) WITH (
+    'connector' = 'filesystem',
+    'path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/StagingFiles/eligible_diagnosis',
+    'format' = 'csv'
+);
+
+CREATE TABLE ineligible_diagnosis (
+    diagnosis_code STRING,
+    diagnosis_description STRING
+) WITH (
+    'connector' = 'filesystem',
+    'path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/StagingFiles/ineligible_diagnosis',
+    'format' = 'csv'
+);
+
+
+CREATE TABLE procedure_thresholds (
+    procedure_code STRING,
+    cost_threshold DOUBLE
+) WITH (
+    'connector' = 'filesystem',
+    'path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/StagingFiles/procedure_thresholds',
+    'format' = 'csv'
+);
+
+
+CREATE TABLE processed_claim_full_info (
+    claim_id STRING PRIMARY KEY NOT ENFORCED,
+    member_id STRING,
+    diagnosis_code STRING,
+    diagnosis_description STRING,
+    diagnosis_date TIMESTAMP(3),
+    lab_results STRING,
+    procedure_code STRING,
+    procedure_description STRING,
+    procedure_date TIMESTAMP(3),
+    procedure_cost DOUBLE,
+    provider_id STRING,
+    provider_name STRING,
+    in_network STRING,
+    facility_name STRING,
+    event_time TIMESTAMP,
+    adjudicated BOOLEAN
+) WITH (
+    'connector' = 'delta',
+    'table-path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/processed_claim_full_info'
+);
+
+
+CREATE TABLE rejected_claims_delta_table (
+    claim_id STRING,
+    member_id STRING,
+    diagnosis_code STRING,
+    diagnosis_description STRING,
+    diagnosis_date TIMESTAMP(3),
+    lab_results STRING,
+    procedure_code STRING,
+    procedure_description STRING,
+    procedure_date TIMESTAMP(3),
+    procedure_cost DOUBLE,
+    provider_id STRING,
+    provider_name STRING,
+    in_network STRING,
+    facility_name STRING,
+    event_time TIMESTAMP,
+    adjudicated BOOLEAN
+) WITH (
+    'connector' = 'delta',
+    'table-path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/rejected_claims_delta_table'
+);
