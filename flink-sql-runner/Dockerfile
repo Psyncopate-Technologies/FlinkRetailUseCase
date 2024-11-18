@@ -28,6 +28,7 @@ RUN curl -L -o /opt/flink/lib/hive-common-2.3.9.jar https://repo1.maven.org/mave
 RUN curl -L -o /opt/flink/lib/hive-metastore-2.3.9.jar https://repo1.maven.org/maven2/org/apache/hive/hive-metastore/2.3.9/hive-metastore-2.3.9.jar
 RUN curl -L -o /opt/flink/lib/hive-exec-2.3.9.jar https://repo1.maven.org/maven2/org/apache/hive/hive-exec/2.3.9/hive-exec-2.3.9.jar
 RUN curl -L -o /opt/flink/lib/javax.servlet-api-4.0.1.jar https://repo1.maven.org/maven2/javax/servlet/javax.servlet-api/4.0.1/javax.servlet-api-4.0.1.jar
+RUN curl -L -o /opt/flink/lib/databricks-jdbc-2.6.38.jar https://repo1.maven.org/maven2/com/databricks/databricks-jdbc/2.6.38/databricks-jdbc-2.6.38.jar
 RUN curl -L -o /opt/flink/lib/libfb303-0.9.3.jar https://repo1.maven.org/maven2/org/apache/thrift/libfb303/0.9.3/libfb303-0.9.3.jar
 RUN curl -L -o /opt/flink/lib/libthrift-0.21.0.jar https://repo1.maven.org/maven2/org/apache/thrift/libthrift/0.21.0/libthrift-0.21.0.jar
 RUN ln -fs /opt/flink/opt/flink-azure-fs-hadoop-*.jar /opt/flink/lib/.
