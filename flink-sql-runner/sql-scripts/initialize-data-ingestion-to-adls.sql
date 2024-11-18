@@ -4,8 +4,9 @@ SET 'execution.checkpointing.externalized-checkpoint-retention' = 'RETAIN_ON_CAN
 SET 'execution.checkpointing.timeout' = '5m';
 
 CREATE CATALOG delta_catalog
-    WITH ('type'         = 'delta-catalog',
-          'catalog-type' = 'in-memory');
+    WITH ('type'          = 'delta-catalog',
+          'catalog-type'  = 'hive',
+          'hive-conf-dir' = '/opt/hive/conf');
 
 USE CATALOG delta_catalog;
 
