@@ -242,3 +242,4 @@ CREATE TABLE rejected_claims_delta_table (
 ) WITH (
     'connector' = 'delta',
     'table-path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/rejected_claims_delta_table'
+);
