@@ -236,7 +236,7 @@ INSERT INTO unadjudicated_claims (
 
 
 ---WIP
-CREATE TABLE processed_claims_summary_test (
+CREATE TABLE adjudicated_claims_summary (
     claim_id STRING PRIMARY KEY NOT ENFORCED,
     total_diagnoses BIGINT,
     total_procedures BIGINT
@@ -245,31 +245,38 @@ CREATE TABLE processed_claims_summary_test (
     'table-path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/processed_claims_summary_test'
 );
 
-INSERT INTO processed_claims_summary_test
+SET 'pipeline.name' = 'Adjudicated_Summary';
+
+INSERT INTO adjudicated_claims_summary
 SELECT
-    claim_id,
-    COUNT(DISTINCT diagnosis_code) AS total_diagnoses,
-    COUNT(DISTINCT procedure_code) AS total_procedures
-FROM processed_claim_full_info
-GROUP BY claim_id;
+     claim_id,
+     COUNT(DISTINCT diagnosis_code) AS total_diagnoses,
+     COUNT(DISTINCT procedure_code) AS total_procedures
+ FROM adjudicated_claims/*+ OPTIONS('mode' = 'streaming') */
+ GROUP BY
+     TUMBLE(PROCTIME(), INTERVAL '1' MINUTE),
+     claim_id;
 
 
-CREATE TABLE rejected_claims_summary (
+
+CREATE TABLE unadjudicated_claims_summary (
     claim_id STRING,
-    total_diagnoses INT,
-    total_procedures INT
+    total_diagnoses BIGINT,
+    total_procedures BIGINT
 ) WITH (
     'connector' = 'delta',
     'table-path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/rejected_claims_summary'
 );
 
-INSERT INTO rejected_claims_summary
+INSERT INTO unadjudicated_claims_summary
 SELECT
-    claim_id,
-    COUNT(DISTINCT diagnosis_code) AS total_diagnoses,
-    COUNT(DISTINCT procedure_code) AS total_procedures
-FROM rejected_claims_delta_table
-GROUP BY claim_id;
+     claim_id,
+     COUNT(DISTINCT diagnosis_code) AS total_diagnoses,
+     COUNT(DISTINCT procedure_code) AS total_procedures
+ FROM unadjudicated_claims/*+ OPTIONS('mode' = 'streaming') */
+ GROUP BY
+     TUMBLE(PROCTIME(), INTERVAL '1' MINUTE),
+     claim_id;
 
 
 
