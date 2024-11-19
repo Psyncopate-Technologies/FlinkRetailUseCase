@@ -13,6 +13,7 @@ INSERT INTO claim_provider_delta_table SELECT claim_id, provider_id, provider_na
 SET 'pipeline.name' = 'eligible_procedure_static_data';
 INSERT INTO eligible_procedures VALUES
 ('PRC001', 'Appendectomy'),
+('PRC002', 'Cataract Surgery'),
 ('PRC003', 'Dental Filling'),
 ('PRC004', 'Orthopedic Surgery'),
 ('PRC005', 'Cardiac Surgery'),
