@@ -243,3 +243,50 @@ CREATE TABLE rejected_claims_delta_table (
     'connector' = 'delta',
     'table-path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/rejected_claims_delta_table'
 );
+
+
+--GOLD ADJUDICATED TABLE
+CREATE TABLE adjudicated_claims (
+    claim_id STRING,
+    member_id STRING,
+    diagnosis_code STRING,
+    diagnosis_description STRING,
+    diagnosis_date TIMESTAMP(3),
+    lab_results STRING,
+    procedure_code STRING,
+    procedure_description STRING,
+    procedure_date TIMESTAMP(3),
+    procedure_cost DOUBLE,
+    provider_id STRING,
+    provider_name STRING,
+    in_network STRING,
+    facility_name STRING,
+    event_time TIMESTAMP,
+    adjudicated BOOLEAN
+) WITH (
+    'connector' = 'delta',
+    'table-path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/adjudicated_claims'
+);
+
+-- GOLD UNADJUDICATED TABLE
+CREATE TABLE unadjudicated_claims (
+    claim_id STRING,
+    member_id STRING,
+    diagnosis_code STRING,
+    diagnosis_description STRING,
+    diagnosis_date TIMESTAMP(3),
+    lab_results STRING,
+    procedure_code STRING,
+    procedure_description STRING,
+    procedure_date TIMESTAMP(3),
+    procedure_cost DOUBLE,
+    provider_id STRING,
+    provider_name STRING,
+    in_network STRING,
+    facility_name STRING,
+    event_time TIMESTAMP,
+    adjudicated BOOLEAN
+) WITH (
+    'connector' = 'delta',
+    'table-path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/unadjudicated_claims'
+);
