@@ -15,7 +15,6 @@ INSERT INTO claim_provider_delta_table SELECT claim_id, provider_id, provider_na
 SET 'pipeline.name' = 'eligible_procedure_static_data';
 INSERT INTO eligible_procedures VALUES
 ('PRC001', 'Appendectomy'),
-('PRC002', 'Cataract Surgery'),
 ('PRC003', 'Dental Filling'),
 ('PRC004', 'Orthopedic Surgery'),
 ('PRC005', 'Cardiac Surgery'),
@@ -158,7 +157,7 @@ select * from claim_full_info;
 
 
 
-SET 'pipeline.name' = 'processed_claim_gold';
+SET 'pipeline.name' = 'processed_claim_full_info';
 INSERT INTO processed_claim_full_info
 SELECT
     c.claim_id,
@@ -215,6 +214,22 @@ SELECT
 FROM claim_full_info/*+ OPTIONS('mode' = 'streaming') */ c
 JOIN ineligible_procedures i ON c.procedure_code = i.procedure_code
 JOIN ineligible_diagnosis d ON c.diagnosis_code = d.diagnosis_code;
+
+
+SET 'pipeline.name' = 'Gold_Adjudicated_Table';
+INSERT INTO adjudicated_claims (
+    SELECT * FROM processed_claim_full_info/*+ OPTIONS('mode' = 'streaming') */
+    WHERE adjudicated = TRUE
+);
+
+
+SET 'pipeline.name' = 'Gold_Unadjudicated_Table';
+INSERT INTO unadjudicated_claims (
+    SELECT * FROM processed_claim_full_info/*+ OPTIONS('mode' = 'streaming') */
+    WHERE adjudicated = FALSE
+    UNION ALL
+    SELECT * FROM rejected_claims_delta_table/*+ OPTIONS('mode' = 'streaming') */
+);
 
 
 ---WIP
