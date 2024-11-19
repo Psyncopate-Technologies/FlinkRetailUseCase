@@ -1,18 +1,16 @@
 
-SET 'pipeline.name' = 'claim_diagnosis_bronze';
+SET 'pipeline.name' = 'claim_diagnosis_bronze_ingestion';
 INSERT INTO claim_diagnosis_delta_table SELECT claim_id, member_id, diagnosis_code, diagnosis_description, diagnosis_date, lab_results, event_time FROM claim_diagnosis;
 
-SET 'pipeline.name' = 'claim_procedure_bronze';
+SET 'pipeline.name' = 'claim_procedure_bronze_ingestion';
 INSERT INTO claim_procedure_delta_table SELECT claim_id, member_id, diagnosis_code, procedure_code, procedure_description, procedure_date, procedure_cost, event_time FROM claim_procedure;
 
-SET 'pipeline.name' = 'claim_provider_bronze';
+SET 'pipeline.name' = 'claim_provider_bronze_ingestion';
 INSERT INTO claim_provider_delta_table SELECT claim_id, provider_id, provider_name, in_network, facility_name, event_time FROM claim_provider;
 
 
--- Create Delta tables for eligible and ineligible procedures
-
 -- Insert data into new eligible procedures table
-SET 'pipeline.name' = 'eligible_procedure_static_data';
+SET 'pipeline.name' = 'eligible_procedures_static_data';
 INSERT INTO eligible_procedures VALUES
 ('PRC001', 'Appendectomy'),
 ('PRC002', 'Cataract Surgery'),
@@ -27,7 +25,7 @@ INSERT INTO eligible_procedures VALUES
 
 
 -- Insert data into ineligible procedures table
-SET 'pipeline.name' = 'ineligible_procedure_static_data';
+SET 'pipeline.name' = 'ineligible_procedures_static_data';
 INSERT INTO ineligible_procedures VALUES
 ('PRC011', 'Blood Transfusion'),
 ('PRC012', 'Chickenpox Vaccination'),
@@ -132,7 +130,7 @@ INSERT INTO procedure_thresholds VALUES
 
 
 
-SET 'pipeline.name' = 'full_join_silver';
+SET 'pipeline.name' = 'full_join_silver_v1';
 INSERT INTO claim_full_info
 SELECT
   d.claim_id,
@@ -154,11 +152,12 @@ FROM claim_diagnosis_delta_table/*+ OPTIONS('mode' = 'streaming') */ d
 JOIN claim_procedure_delta_table/*+ OPTIONS('mode' = 'streaming') */ p ON d.claim_id = p.claim_id and d.diagnosis_code = p.diagnosis_code
 JOIN claim_provider_delta_table/*+ OPTIONS('mode' = 'streaming') */ pr ON d.claim_id = pr.claim_id and p.claim_id = pr.claim_id;
 
+
 select * from claim_full_info;
 
 
 
-SET 'pipeline.name' = 'processed_claim_gold';
+SET 'pipeline.name' = 'processed_claims_full_info_silver_v2';
 INSERT INTO processed_claim_full_info
 SELECT
     c.claim_id,
@@ -193,7 +192,7 @@ select * from processed_claim_full_info;
 
 
 -- Insert data into rejected_claims_delta_table for ineligible procedures
-SET 'pipeline.name' = 'processed_claim_unajudicated';
+SET 'pipeline.name' = 'rejected_claims_ineligible_procedures_diagnosis_gold_v1';
 INSERT INTO rejected_claims_delta_table
 SELECT
     c.claim_id,
@@ -213,42 +212,50 @@ SELECT
     c.event_time,
     FALSE AS adjudicated
 FROM claim_full_info/*+ OPTIONS('mode' = 'streaming') */ c
-JOIN ineligible_procedures i ON c.procedure_code = i.procedure_code
-JOIN ineligible_diagnosis d ON c.diagnosis_code = d.diagnosis_code;
+INNER JOIN ineligible_procedures e ON c.procedure_code = e.procedure_code
+INNER JOIN ineligible_diagnosis d ON c.diagnosis_code = d.diagnosis_code;
 
 
----WIP
-CREATE TABLE processed_claims_summary_test (
-    claim_id STRING PRIMARY KEY NOT ENFORCED,
-    total_diagnoses BIGINT,
-    total_procedures BIGINT
-) WITH (
-    'connector' = 'delta',
-    'table-path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/processed_claims_summary_test'
+
+SET 'pipeline.name' = 'adjudicated_claims_gold_v1';
+INSERT INTO adjudicated_claims (
+    SELECT * FROM processed_claim_full_info/*+ OPTIONS('mode' = 'streaming') */
+    WHERE adjudicated = TRUE
 );
 
-INSERT INTO processed_claims_summary_test
-SELECT
-    claim_id,
-    COUNT(DISTINCT diagnosis_code) AS total_diagnoses,
-    COUNT(DISTINCT procedure_code) AS total_procedures
-FROM processed_claim_full_info
-GROUP BY claim_id;
 
-
-CREATE TABLE rejected_claims_summary (
-    claim_id STRING,
-    total_diagnoses INT,
-    total_procedures INT
-) WITH (
-    'connector' = 'delta',
-    'table-path' = 'abfss://molina@molinahealthcareusecase.dfs.core.windows.net/rejected_claims_summary'
+SET 'pipeline.name' = 'unadjudicated_claims_gold_v1';
+INSERT INTO unadjudicated_claims (
+    SELECT * FROM processed_claim_full_info/*+ OPTIONS('mode' = 'streaming') */
+    WHERE adjudicated = FALSE
+    UNION ALL
+    SELECT * FROM rejected_claims_delta_table/*+ OPTIONS('mode' = 'streaming') */
 );
 
-INSERT INTO rejected_claims_summary
+
+SET 'pipeline.name' = 'adjudicated_claims_summary_gold_v2';
+INSERT INTO adjudicated_claims_summary
 SELECT
-    claim_id,
-    COUNT(DISTINCT diagnosis_code) AS total_diagnoses,
-    COUNT(DISTINCT procedure_code) AS total_procedures
-FROM rejected_claims_delta_table
-GROUP BY claim_id;
+     claim_id,
+     COUNT(DISTINCT diagnosis_code) AS total_diagnoses,
+     COUNT(DISTINCT procedure_code) AS total_procedures
+ FROM adjudicated_claims/*+ OPTIONS('mode' = 'streaming') */
+ GROUP BY
+     TUMBLE(PROCTIME(), INTERVAL '30' SECONDS),
+     claim_id;
+
+
+SET 'pipeline.name' = 'unadjudicated_claims_summary_gold_v2';
+INSERT INTO unadjudicated_claims_summary
+SELECT
+     claim_id,
+     COUNT(DISTINCT diagnosis_code) AS total_diagnoses,
+     COUNT(DISTINCT procedure_code) AS total_procedures
+ FROM unadjudicated_claims/*+ OPTIONS('mode' = 'streaming') */
+ GROUP BY
+     TUMBLE(PROCTIME(), INTERVAL '30' SECONDS),
+     claim_id;
+
+
+
+
