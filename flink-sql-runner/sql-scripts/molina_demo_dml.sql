@@ -9,8 +9,6 @@ SET 'pipeline.name' = 'claim_provider_bronze';
 INSERT INTO claim_provider_delta_table SELECT claim_id, provider_id, provider_name, in_network, facility_name, event_time FROM claim_provider;
 
 
--- Create Delta tables for eligible and ineligible procedures
-
 -- Insert data into new eligible procedures table
 SET 'pipeline.name' = 'eligible_procedure_static_data';
 INSERT INTO eligible_procedures VALUES
@@ -192,7 +190,7 @@ select * from processed_claim_full_info;
 
 
 -- Insert data into rejected_claims_delta_table for ineligible procedures
-SET 'pipeline.name' = 'processed_claim_unajudicated';
+SET 'pipeline.name' = 'rejected_claims_delta_table';
 INSERT INTO rejected_claims_delta_table
 SELECT
     c.claim_id,
@@ -212,8 +210,12 @@ SELECT
     c.event_time,
     FALSE AS adjudicated
 FROM claim_full_info/*+ OPTIONS('mode' = 'streaming') */ c
-JOIN ineligible_procedures i ON c.procedure_code = i.procedure_code
-JOIN ineligible_diagnosis d ON c.diagnosis_code = d.diagnosis_code;
+INNER JOIN ineligible_procedures e ON c.procedure_code = e.procedure_code
+INNER JOIN ineligible_diagnosis d ON c.diagnosis_code = d.diagnosis_code;
+
+
+
+
 
 
 SET 'pipeline.name' = 'Gold_Adjudicated_Table';
@@ -267,3 +269,60 @@ SELECT
     COUNT(DISTINCT procedure_code) AS total_procedures
 FROM rejected_claims_delta_table
 GROUP BY claim_id;
+
+
+
+
+
+
+
+
+
+
+
+---WIP
+INSERT INTO rejected_claims_delta_table
+SELECT
+    c.claim_id,
+    c.member_id,
+    c.diagnosis_code,
+    c.diagnosis_description,
+    c.diagnosis_date,
+    c.lab_results,
+    c.procedure_code,
+    c.procedure_description,
+    c.procedure_date,
+    c.procedure_cost,
+    c.provider_id,
+    c.provider_name,
+    c.in_network,
+    c.facility_name,
+    c.event_time,
+    FALSE AS adjudicated
+FROM claim_full_info /*+ OPTIONS('mode' = 'streaming') */ c
+JOIN ineligible_diagnosis id
+  ON c.diagnosis_code = id.diagnosis_code
+
+UNION ALL
+
+SELECT
+    c.claim_id,
+    c.member_id,
+    c.diagnosis_code,
+    c.diagnosis_description,
+    c.diagnosis_date,
+    c.lab_results,
+    c.procedure_code,
+    c.procedure_description,
+    c.procedure_date,
+    c.procedure_cost,
+    c.provider_id,
+    c.provider_name,
+    c.in_network,
+    c.facility_name,
+    c.event_time,
+    FALSE AS adjudicated
+FROM claim_full_info /*+ OPTIONS('mode' = 'streaming') */ c
+JOIN ineligible_procedures ip
+  ON c.procedure_code = ip.procedure_code;
+
