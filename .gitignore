@@ -25,6 +25,7 @@ order-analysis/target/
 watchlist-trigger/target/
 marketing-analysis/target/
 flink-sql-runner/target/
+delta-schema-evolution/target/
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*

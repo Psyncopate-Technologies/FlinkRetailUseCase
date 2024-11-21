@@ -13,7 +13,7 @@
         <kafka.version>3.2.2</kafka.version>
         <log4j.version>2.17.1</log4j.version>
         <java.version>11</java.version>
-        <mainClass>org.psyncopate.flink.DeltaSchemaEvolution</mainClass>
+        <mainClass>org.psyncopate.flink.AdjudicatedSummarySchemaEvolution</mainClass>
     </properties>
 
     <dependencies>
