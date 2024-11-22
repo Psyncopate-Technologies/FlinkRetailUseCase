@@ -130,7 +130,7 @@ INSERT INTO procedure_thresholds VALUES
 
 
 
-SET 'pipeline.name' = 'full_join_silver_v1';
+SET 'pipeline.name' = 'full_join_l1_v1';
 INSERT INTO claim_full_info
 SELECT
   d.claim_id,
@@ -157,7 +157,7 @@ select * from claim_full_info;
 
 
 
-SET 'pipeline.name' = 'processed_claims_full_info_silver_v2';
+SET 'pipeline.name' = 'processed_claims_full_info_l1_v2';
 INSERT INTO processed_claim_full_info
 SELECT
     c.claim_id,
@@ -192,7 +192,7 @@ select * from processed_claim_full_info;
 
 
 -- Insert data into rejected_claims_delta_table for ineligible procedures
-SET 'pipeline.name' = 'rejected_claims_ineligible_procedures_diagnosis_gold_v1';
+SET 'pipeline.name' = 'rejected_claims_ineligible_procedures_diagnosis_l1_v1';
 INSERT INTO rejected_claims_delta_table
 SELECT
     c.claim_id,
@@ -217,14 +217,14 @@ INNER JOIN ineligible_diagnosis d ON c.diagnosis_code = d.diagnosis_code;
 
 
 
-SET 'pipeline.name' = 'adjudicated_claims_gold_v1';
+SET 'pipeline.name' = 'adjudicated_claims_l2_v1';
 INSERT INTO adjudicated_claims (
     SELECT * FROM processed_claim_full_info/*+ OPTIONS('mode' = 'streaming') */
     WHERE adjudicated = TRUE
 );
 
 
-SET 'pipeline.name' = 'unadjudicated_claims_gold_v1';
+SET 'pipeline.name' = 'unadjudicated_claims_l2_v1';
 INSERT INTO unadjudicated_claims (
     SELECT * FROM processed_claim_full_info/*+ OPTIONS('mode' = 'streaming') */
     WHERE adjudicated = FALSE
@@ -233,7 +233,7 @@ INSERT INTO unadjudicated_claims (
 );
 
 
-SET 'pipeline.name' = 'adjudicated_claims_summary_gold_v2';
+SET 'pipeline.name' = 'adjudicated_claims_summary_gold_l2_v2';
 INSERT INTO adjudicated_claims_summary
 SELECT
      claim_id,
@@ -245,7 +245,7 @@ SELECT
      claim_id;
 
 
-SET 'pipeline.name' = 'unadjudicated_claims_summary_gold_v2';
+SET 'pipeline.name' = 'unadjudicated_claims_summary_gold_l2_v2';
 INSERT INTO unadjudicated_claims_summary
 SELECT
      claim_id,
