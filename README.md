@@ -305,8 +305,8 @@ docker push dsasidaren/marketing-analysis:1.0.9
 cd watchlist-trigger
 You should find a file named Dockerfile
 Build Multiplatform images: ENsure to use containerd to pull and push images - a docker setting - by default it would be classic
-docker buildx build --platform linux/amd64,linux/arm64 -t dsasidaren/watchlist-trigger:1.0.9 .
-docker push dsasidaren/watchlist-trigger:1.0.9
+docker buildx build --platform linux/amd64,linux/arm64 -t dsasidaren/watchlist-trigger:1.0.10 .
+docker push dsasidaren/watchlist-trigger:1.0.10
 
 Access Docker mongo in K8s
 ====

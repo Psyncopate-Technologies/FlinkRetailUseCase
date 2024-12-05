@@ -1,4 +1,5 @@
 SET 'execution.checkpointing.interval' = '10s';
+SET 'execution.checkpointing.incremental' = 'true';
 SET 'execution.checkpointing.mode' = 'EXACTLY_ONCE';
 SET 'execution.checkpointing.externalized-checkpoint-retention' = 'RETAIN_ON_CANCELLATION';
 SET 'execution.checkpointing.timeout' = '5m';
